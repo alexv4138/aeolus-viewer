@@ -1,4 +1,4 @@
-# Aeolus Grid
+# Sistem Monitorizare Urban Lentz 2
 
 Aplicație de monitorizare pentru turbine eoliene. Interfața este în limba română, are autentificare pe utilizator și un panou principal pentru administrator.
 
