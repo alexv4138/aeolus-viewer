@@ -1,27 +1,41 @@
 import { sql } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { telemetry, turbines } from '@/db/schema';
+import { workbookTelemetry, workbookUsers } from '@/app/fleet-data';
 
-const fleet = [
-  ['t-01', 'andrei.pop', 'URBAN LENTZ 01', 'Fundeni, Călărași'],
-  ['t-02', 'bianca.ionescu', 'URBAN LENTZ 02', 'Măgurele, Ilfov'],
-  ['t-03', 'cristian.munteanu', 'URBAN LENTZ 03', 'Buzău, România'],
-  ['t-04', 'diana.stan', 'URBAN LENTZ 04', 'Constanța, România'],
-  ['t-05', 'rafael.dobre', 'URBAN LENTZ 05', 'Sibiu, România'],
-] as const;
+const operators = workbookUsers.filter((user) => user.role !== 1);
+const latestByLocation = new Map<number, typeof workbookTelemetry[number]>();
+for (const point of workbookTelemetry) latestByLocation.set(point.IDLocatie, point);
 
 export async function POST() {
   const now = new Date();
   try {
     const db = getDb();
-    const count = await db.select({ count: sql<number>`count(*)` }).from(turbines);
-    if (!count[0]?.count) {
-      await db.insert(turbines).values(fleet.map(([id, ownerUsername, label, location]) => ({ id, ownerUsername, label, location, createdAt: now })));
-    }
-    await db.insert(telemetry).values(fleet.map(([turbineId], index) => {
-      const wind = 5 + Math.random() * 5 - index * .16;
-      const outputKw = Math.max(.9, wind * .78 + (Math.random() - .5));
-      return { id: crypto.randomUUID(), turbineId, capturedAt: now, rpm: 125 + wind * 11 + Math.random() * 15, outputKw, amps: outputKw * 1.62, temperature: 38 + Math.random() * 6, vibration: .035 + Math.random() * .04, windSpeed: wind, totalKwh: 1400 + index * 120 + Math.random() * 45 };
+    const fleet = operators.map((user, index) => ({
+      id: `t-loc-${user.locationId}`,
+      ownerUsername: user.username,
+      label: `TURBINĂ ${String(user.locationId).padStart(2, '0')}`,
+      location: user.location,
+      createdAt: now,
+      baseline: latestByLocation.get(user.locationId) ?? latestByLocation.get(1)!,
+      index,
+    }));
+    await db.insert(turbines).values(fleet.map(({ baseline: _, index: __, ...turbine }) => turbine)).onConflictDoUpdate({
+      target: turbines.id,
+      set: { ownerUsername: sql`excluded.owner_username`, label: sql`excluded.label`, location: sql`excluded.location` },
+    });
+    await db.insert(telemetry).values(fleet.map(({ id, baseline, index }) => {
+      const wind = Math.max(1.1, baseline.VitVant + (Math.random() - .42) * .55 + index * .12);
+      const outputKw = Math.max(.01, (baseline.Putere + (wind - baseline.VitVant) * 24 + (Math.random() - .5) * 6) / 1000);
+      return {
+        id: crypto.randomUUID(), turbineId: id, capturedAt: now,
+        rpm: baseline.Turatie + (wind - baseline.VitVant) * 13,
+        outputKw, amps: baseline.Amperaj + (outputKw * 1000 - baseline.Putere) / 50,
+        temperature: baseline.TempInfas + (Math.random() - .5) * .18,
+        vibration: baseline.Vibratii + (Math.random() - .5) * .01,
+        windSpeed: wind,
+        totalKwh: baseline.Energie + outputKw / 3.6,
+      };
     }));
     return Response.json({ stored: fleet.length, capturedAt: now.toISOString(), durable: true });
   } catch {
