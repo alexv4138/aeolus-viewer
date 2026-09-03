@@ -1,3 +1,5 @@
 $toolDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Start-Process python -ArgumentList '-m','http.server','8765' -WorkingDirectory $toolDir -WindowStyle Hidden
-Start-Process 'http://localhost:8765/frame-editor.html'
+$python = (Get-Command python -ErrorAction Stop).Source
+Start-Process -FilePath $python -ArgumentList '-m','http.server','8765' -WorkingDirectory $toolDir -WindowStyle Hidden
+Start-Sleep -Milliseconds 750
+Start-Process 'http://127.0.0.1:8765/frame-editor.html'
