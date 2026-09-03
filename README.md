@@ -30,6 +30,10 @@ Pentru compilarea de producție:
 npm run build
 ```
 
+## Ramura `demo-static`
+
+Această ramură este pentru demonstrații pe găzduire statică. Autentificarea și datele de telemetrie sunt încărcate în JavaScript în browser, iar citirile simulate se actualizează la fiecare 20 de secunde. Nu este necesar un backend sau o bază de date pentru rulare, însă datele nu sunt persistente și loginul nu este potrivit pentru producție.
+
 ## Structură
 
 - `app/page.tsx` — autentificare, dashboard individual și panou administrator.
