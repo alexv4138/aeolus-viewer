@@ -14,7 +14,7 @@ Datele de acces din fișier sunt folosite doar pentru demonstrație. Pentru prod
 ## Actualizare și istoric
 
 - Interfața adaugă o citire nouă la fiecare 20 de secunde.
-- `POST /api/telemetry` scrie aceleași cicluri în baza D1 configurată prin `.openai/hosting.json`.
+- Pe această ramură, ciclurile sunt simulate exclusiv în browser și nu sunt scrise într-o bază de date.
 - Tabela `telemetry` are index pe turbină și timp, pentru interogări rapide ale istoricului.
 
 ## Rulare locală
@@ -38,5 +38,5 @@ Această ramură este pentru demonstrații pe găzduire statică. Autentificarea
 
 - `app/page.tsx` — autentificare, dashboard individual și panou administrator.
 - `app/fleet-data.ts` — setul de date importat din cele două fișiere Excel.
-- `app/api/telemetry/route.ts` — persistarea ciclurilor de telemetrie în D1.
+- `app/fleet-data.ts` — datele locale pentru demo.
 - `db/schema.ts` — schema și indecșii bazei de date.
