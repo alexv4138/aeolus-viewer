@@ -30,4 +30,5 @@ button, input, select { font:inherit; } button { cursor:pointer; } button, input
 
 .chart-panel{width:100%;border-left:0;border-right:0;border-top:0;background:transparent;color:inherit;text-align:left}
 .range-toolbar{display:flex;gap:14px;align-items:end;margin-top:18px;font-size:11px;color:#63706b}.range-toolbar label{display:grid;gap:5px}.range-toolbar input{border:1px solid var(--line);padding:6px 8px;background:#fff;color:var(--ink)}.range-toolbar button{border:1px solid var(--blue);background:var(--blue);color:#fff;padding:7px 12px;font-size:11px;font-weight:700}.mini-bars.large{height:420px;gap:5px}
-.chart-modal{position:fixed;inset:0;background:#fff;z-index:20;padding:5vh 6vw}.chart-modal-content{height:90vh}.chart-modal-close{float:right;padding:8px 14px;background:#fff;border:1px solid var(--line)}.chart-modal h2{margin-top:30px}.chart-modal p{color:var(--muted)}
+.app-shell > .chart-modal { position:fixed; inset:0; z-index:20; }
+.chart-modal{background:#fff;padding:5vh 6vw;overflow:auto}.chart-modal-content{min-height:90vh}.chart-modal-close{float:right;padding:8px 14px;background:#fff;border:1px solid var(--line)}.chart-modal h2{margin-top:30px}.chart-modal p{color:var(--muted)}
