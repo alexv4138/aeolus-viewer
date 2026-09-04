@@ -10,10 +10,10 @@
     "file": "turbina/_next/static/chunks/rolldown-runtime-Bq3QCnv0.js",
     "name": "rolldown-runtime"
   },
-  "app/page.tsx": {
-    "file": "turbina/_next/static/chunks/page-B7qiIudB.js",
-    "name": "page",
-    "src": "app/page.tsx",
+  "app/dashboard-client.tsx": {
+    "file": "turbina/_next/static/chunks/dashboard-client-BpNqOEbr.js",
+    "name": "dashboard-client",
+    "src": "app/dashboard-client.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-Bq3QCnv0.js",
@@ -21,7 +21,7 @@
     ]
   },
   "node_modules/vinext/dist/shims/internal/app-route-prefetch-policy.js": {
-    "file": "turbina/_next/static/chunks/app-route-prefetch-policy-sR7mC5iI.js",
+    "file": "turbina/_next/static/chunks/app-route-prefetch-policy-B8Qoc_ru.js",
     "name": "app-route-prefetch-policy",
     "src": "node_modules/vinext/dist/shims/internal/app-route-prefetch-policy.js",
     "isDynamicEntry": true,
@@ -30,7 +30,7 @@
     ]
   },
   "node_modules/vinext/dist/shims/layout-segment-context.js": {
-    "file": "turbina/_next/static/chunks/layout-segment-context-MSC_IA8j.js",
+    "file": "turbina/_next/static/chunks/layout-segment-context-CMfBLFOC.js",
     "name": "layout-segment-context",
     "src": "node_modules/vinext/dist/shims/layout-segment-context.js",
     "isDynamicEntry": true,
@@ -51,7 +51,7 @@
     ]
   },
   "virtual:vinext-app-browser-entry": {
-    "file": "turbina/_next/static/chunks/index-BhGDwBVc.js",
+    "file": "turbina/_next/static/chunks/index-CLv8bS3c.js",
     "name": "index",
     "src": "virtual:vinext-app-browser-entry",
     "isEntry": true,
@@ -63,8 +63,8 @@
       "node_modules/vinext/dist/shims/internal/app-route-prefetch-policy.js",
       "virtual:vinext-app-browser-entry",
       "node_modules/vinext/dist/shims/layout-segment-context.js",
-      "app/page.tsx",
-      "node_modules/vinext/dist/shims/streamed-icons.js"
+      "node_modules/vinext/dist/shims/streamed-icons.js",
+      "app/dashboard-client.tsx"
     ]
   }
 }
