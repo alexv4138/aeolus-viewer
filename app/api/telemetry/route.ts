@@ -1,11 +1,10 @@
 import { sql } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { telemetry, turbines } from '@/db/schema';
-import { workbookTelemetry, workbookUsers } from '@/app/fleet-data';
+import { workbookUsers, type WorkbookTelemetry } from '@/app/fleet-data';
 
 const operators = workbookUsers.filter((user) => user.role !== 1);
-const latestByLocation = new Map<number, typeof workbookTelemetry[number]>();
-for (const point of workbookTelemetry) latestByLocation.set(point.IDLocatie, point);
+const baseline: WorkbookTelemetry = { IDLocatie: 0, DataOra: '', TempC: 18, PresAtm: 1012, Umiditate: 65, VitVant: 6, DirectieVant: 'SSV', RadSolara: 300, Turatie: 100, Voltaj: 52, Amperaj: 6, Putere: 320, Energie: 0, Vibratii: 0.2, CupluMec: 35, TempInfas: 22, Alarma: 0 };
 
 export async function POST() {
   const now = new Date();
@@ -17,7 +16,7 @@ export async function POST() {
       label: `TURBINĂ ${String(user.locationId).padStart(2, '0')}`,
       location: user.location,
       createdAt: now,
-      baseline: latestByLocation.get(user.locationId) ?? latestByLocation.get(1)!,
+      baseline: { ...baseline, IDLocatie: user.locationId },
       index,
     }));
     await db.insert(turbines).values(fleet.map(({ baseline: _, index: __, ...turbine }) => turbine)).onConflictDoUpdate({
