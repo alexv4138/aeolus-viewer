@@ -32,7 +32,7 @@ npm run build
 
 ## Export static pentru arrows.ro/turbina
 
-Rulează `sincronizeaza-static.bat` din ramura principală. Scriptul creează o copie locală a ramurii `demo-static`, copiază numai stilurile, datele demonstrative și fișierele publice compatibile, apoi reconstruiește și publică în Git folderul `turbina` pentru FTP.
+Rulează `sincronizeaza-static.bat` din ramura principală. Scriptul creează o copie locală a ramurii `demo-static`, copiază stilurile, datele demonstrative și video-urile compatibile, reconstruiește pagina statică și publică folderul `turbina` în Git.
 
 După rulare, urcă **tot conținutul** folderului `wind-turbine-monitor-static\turbina` în folderul `/turbina/` de pe hosting. Ramura principală păstrează baza D1 și API-ul; pagina complet statică rămâne doar o demonstrație.
 
