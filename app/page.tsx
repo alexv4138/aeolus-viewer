@@ -182,6 +182,14 @@ function MiniBars({
     <div className={`mini-bars ${large ? "large" : ""}`}>
       {values.map((value, index) => {
         const point = sampled[index];
+        const pointDate = new Date(point.DataOra);
+        const day = pointDate.getDate();
+        const nextPoint = sampled[index + 1];
+        const monthEnds = nextPoint
+          ? new Date(nextPoint.DataOra).getMonth() !== pointDate.getMonth()
+          : false;
+        const showDay =
+          !large && (index === 0 || index === values.length - 1 || day === 1 || day % 5 === 0 || monthEnds);
         return (
           <span className="bar-column" key={`${point.DataOra}-${value}`}>
             <i
@@ -191,12 +199,13 @@ function MiniBars({
                 backgroundColor: color,
               }}
             />
-            {large && (
-              <small>
-                <b>{formatDateTime(point.DataOra)}</b>
-                <b>{format(value)}</b>
-              </small>
-            )}
+            <small className={showDay ? "day-label" : ""}>
+              {showDay ? day : ""}
+            </small>
+            <span className="bar-tooltip">
+              <b>{pointDate.toLocaleDateString("ro-RO", { day: "2-digit", month: "short" })}</b>
+              <b>{format(value)}</b>
+            </span>
           </span>
         );
       })}

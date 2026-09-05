@@ -469,11 +469,13 @@ select {
   opacity: 0.85;
 }
 .mini-bars .bar-column {
+  position: relative;
   display: flex;
   align-items: stretch;
   flex-direction: column;
   min-width: 0;
   height: 100%;
+  border-left: 1px solid rgba(118, 129, 125, 0.12);
 }
 .mini-bars .bar-column > i {
   display: block;
@@ -483,6 +485,44 @@ select {
 }
 .mini-bars .bar-column small {
   display: none;
+}
+.mini-bars .bar-column small.day-label {
+  display: block;
+  height: 15px;
+  padding-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1;
+  text-align: center;
+}
+.bar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  z-index: 3;
+  display: none;
+  min-width: 54px;
+  padding: 5px 6px;
+  transform: translateX(-50%);
+  background: #121a18;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 1;
+}
+.bar-tooltip b {
+  display: block;
+  font-weight: 500;
+}
+.mini-bars .bar-column:hover > i {
+  opacity: 1;
+  filter: brightness(0.78);
+}
+.mini-bars .bar-column:hover .bar-tooltip {
+  display: block;
 }
 .chart-axis {
   display: flex;
@@ -841,29 +881,13 @@ footer span {
 .mini-bars.large {
   height: 460px;
   gap: 6px;
-  padding-bottom: 86px;
+  padding-bottom: 0;
 }
 .mini-bars.large .bar-column {
   position: relative;
 }
 .mini-bars.large .bar-column small {
-  position: absolute;
-  top: calc(100% + 7px);
-  left: 50%;
-  display: grid;
-  gap: 2px;
-  width: 58px;
-  transform: translateX(-50%) rotate(-58deg);
-  transform-origin: top center;
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 400;
-  line-height: 1.1;
-  white-space: nowrap;
-  text-align: left;
-}
-.mini-bars.large .bar-column small b {
-  font-weight: 500;
+  display: none;
 }
 .app-shell > .chart-modal {
   position: fixed;
