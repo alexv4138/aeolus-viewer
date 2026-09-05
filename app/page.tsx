@@ -158,43 +158,66 @@ function MiniBars({ points, field, color = "#18201e" }: {
   points: Point[]; field: keyof Point; color?: string; large?: boolean;
 }) {
   const [active, setActive] = useState<number | null>(null);
-  const sampled = points.length <= 72 ? points : Array.from({ length: 72 }, (_, i) =>
-    points[Math.round(i * (points.length - 1) / 71)]);
-  const max = Math.max(1, ...sampled.map(p => Number(p[field])));
+  const maximumBars = 48;
+  const bucketSize = Math.max(1, Math.ceil(points.length / maximumBars));
+  const buckets = Array.from(
+    { length: Math.ceil(points.length / bucketSize) },
+    (_, index) => {
+      const bucketPoints = points.slice(index * bucketSize, (index + 1) * bucketSize);
+      const values = bucketPoints.map((point) => Number(point[field]));
+      return {
+        start: bucketPoints[0],
+        end: bucketPoints.at(-1)!,
+        min: Math.min(...values),
+        max: Math.max(...values),
+      };
+    },
+  );
+  const dataMin = field === "Energie" ? Math.min(...buckets.map((bucket) => bucket.min)) : 0;
+  const dataMax = Math.max(...buckets.map((bucket) => bucket.max), dataMin + 1);
+  const range = Math.max(1, dataMax - dataMin);
   const left = 52, width = 536, top = 12, height = 168;
-  const step = width / Math.max(1, sampled.length);
-  const selected = active === null ? null : sampled[active];
-  const ticks = [...new Set([0, Math.floor((sampled.length - 1) / 3), Math.floor(2 * (sampled.length - 1) / 3), sampled.length - 1])].filter(i => i >= 0);
+  const step = width / Math.max(1, buckets.length);
+  const selected = active === null ? null : buckets[active];
+  const ticks = [...new Set([0, Math.floor((buckets.length - 1) / 3), Math.floor(2 * (buckets.length - 1) / 3), buckets.length - 1])].filter(i => i >= 0);
+  const intervalLabel = bucketSize === 1
+    ? "fiecare citire"
+    : bucketSize < 48
+      ? `grupe de aproximativ ${Math.max(1, Math.round(bucketSize / 2))} ore`
+      : `grupe de aproximativ ${Math.max(1, Math.round(bucketSize / 48))} zile`;
   return (
     <div className="telemetry-chart">
       <div className="chart-readout" aria-live="polite">
-        {selected ? `${formatDateTime(selected.DataOra)} · ${format(Number(selected[field]))}` : "Atinge o bară pentru dată și valoare"}
+        {selected
+          ? `${formatDateTime(selected.start.DataOra)} – ${formatDateTime(selected.end.DataOra)} · min ${format(selected.min)} · max ${format(selected.max)}`
+          : `${intervalLabel} · atinge o bară pentru interval și valori`}
       </div>
       <svg viewBox="0 0 600 228" className="telemetry-plot" role="img" aria-label="Grafic de telemetrie">
         {[0, 0.5, 1].map(ratio => <g key={ratio}>
           <line x1={left} x2={588} y1={top + height * (1 - ratio)} y2={top + height * (1 - ratio)} stroke="#dde4e1" />
-          <text x={44} y={top + height * (1 - ratio) + 4} textAnchor="end" fill="#63706b" fontSize="12">{format(max * ratio)}</text>
+          <text x={44} y={top + height * (1 - ratio) + 4} textAnchor="end" fill="#63706b" fontSize="12">{format(dataMin + range * ratio)}</text>
         </g>)}
-        {sampled.map((point, i) => {
-          const value = Number(point[field]);
-          const barHeight = Math.max(0, value / max * height);
-          const dayStart = i > 0 && new Date(point.DataOra).toDateString() !== new Date(sampled[i - 1].DataOra).toDateString();
-          return <g key={`${point.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
+        {buckets.map((bucket, i) => {
+          const minHeight = Math.max(2, (bucket.min - dataMin) / range * height);
+          const maxHeight = Math.max(minHeight, (bucket.max - dataMin) / range * height);
+          const dayStart = i > 0 && new Date(bucket.start.DataOra).toDateString() !== new Date(buckets[i - 1].start.DataOra).toDateString();
+          return <g key={`${bucket.start.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
             <rect x={left + i * step} y={top} width={step} height={height} fill="transparent" />
             {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />}
-            <rect x={left + i * step + step * 0.12} y={top + height - barHeight} width={step * 0.76} height={barHeight} fill={color} opacity={active === i ? 1 : dayStart ? 0.95 : 0.72} />
-            <title>{formatDateTime(point.DataOra)}: {format(value)}</title>
+            <rect x={left + i * step + step * 0.12} y={top + height - maxHeight} width={step * 0.76} height={maxHeight} fill={color} opacity="0.28" />
+            <rect x={left + i * step + step * 0.12} y={top + height - minHeight} width={step * 0.76} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />
+            <title>{formatDateTime(bucket.start.DataOra)} – {formatDateTime(bucket.end.DataOra)}: min {format(bucket.min)}, max {format(bucket.max)}</title>
           </g>;
         })}
         {ticks.map((i, n) => {
-          const date = new Date(sampled[i].DataOra);
+          const date = new Date(buckets[i].start.DataOra);
           return <text key={i} x={left + i * step + step / 2} y={201} textAnchor={n === 0 ? "start" : n === ticks.length - 1 ? "end" : "middle"} fill="#63706b" fontSize="12">
             <tspan>{date.toLocaleDateString("ro-RO", {day: "2-digit", month: "short"})}</tspan>
             <tspan x={left + i * step + step / 2} dy="17">{date.toLocaleTimeString("ro-RO", {hour: "2-digit", minute: "2-digit"})}</tspan>
           </text>;
         })}
       </svg>
-      <div className="chart-detail-hint">{points.length > 72 ? "Privire de ansamblu · " : ""}Deschide graficul pentru toate citirile →</div>
+      <div className="chart-detail-hint">{intervalLabel} · zona deschisă = maxim, zona închisă = minim · deschide pentru toate citirile →</div>
     </div>
   );
 }
@@ -208,30 +231,48 @@ function PopupBars({
   field: keyof Point;
   color?: string;
 }) {
-  const values = points.map((point) => Number(point[field]));
-  const maximum = Math.max(...values, 1);
+  const bucketSize = Math.max(1, Math.ceil(points.length / 160));
+  const buckets = Array.from(
+    { length: Math.ceil(points.length / bucketSize) },
+    (_, index) => {
+      const group = points.slice(index * bucketSize, (index + 1) * bucketSize);
+      const values = group.map((point) => Number(point[field]));
+      return {
+        start: group[0],
+        end: group[group.length - 1],
+        min: Math.min(...values),
+        max: Math.max(...values),
+      };
+    },
+  );
+  const minimum = field === "Energie" ? Math.min(...buckets.map((bucket) => bucket.min)) : 0;
+  const maximum = Math.max(...buckets.map((bucket) => bucket.max), minimum + 1);
+  const range = Math.max(1, maximum - minimum);
   return (
     <div className="popup-bars">
-      {points.map((point, index) => {
-        const value = values[index];
-        const previousPoint = points[index - 1];
+      {buckets.map((bucket, index) => {
+        const previousBucket = buckets[index - 1];
         const startsDay =
           index === 0 ||
-          new Date(point.DataOra).toDateString() !==
-            new Date(previousPoint.DataOra).toDateString();
+          new Date(bucket.start.DataOra).toDateString() !==
+            new Date(previousBucket.start.DataOra).toDateString();
+        const period = bucket.start.DataOra === bucket.end.DataOra
+          ? formatDateTime(bucket.start.DataOra)
+          : `${formatDateTime(bucket.start.DataOra)}–${formatDateTime(bucket.end.DataOra)}`;
         return (
           <div
             className={`popup-bar-row ${startsDay ? "day-start" : ""}`}
-            key={`${point.DataOra}-${value}`}
+            key={`${bucket.start.DataOra}-${index}`}
           >
             <span className="popup-bar-label">
-              <b>{formatDateTime(point.DataOra)}</b>
-              <strong>{format(value)}</strong>
+              <b>{period}</b>
+              <strong>{bucket.min === bucket.max ? format(bucket.max) : `${format(bucket.min)}–${format(bucket.max)}`}</strong>
             </span>
             <span className="popup-bar-track">
               <i
                 style={{
-                  width: `${Math.max(2, (value / maximum) * 100)}%`,
+                  width: `${Math.max(2, ((bucket.max - minimum) / range) * 100)}%`,
+                  maxWidth: "100%",
                   backgroundColor: color,
                 }}
               />

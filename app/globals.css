@@ -1082,18 +1082,18 @@ footer span {
 }
 .popup-bar-row {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(100px, 1fr);
+  grid-template-columns: minmax(265px, 340px) minmax(80px, 1fr);
   gap: 14px;
   align-items: center;
   min-height: 25px;
 }
 .popup-bar-label {
-  display: grid;
+  display: flex;
   justify-content: space-between;
   gap: 12px;
   color: #58645f;
   font-size: 12px;
-  white-space: normal;
+  white-space: nowrap;
 }
 .popup-bar-label b {
   font-weight: 500;
@@ -1161,15 +1161,17 @@ footer span {
     width: 100%;
   }
   .popup-bar-row {
-    grid-template-columns: minmax(130px, 47%) minmax(50px, 1fr);
+    grid-template-columns: minmax(190px, 58%) minmax(45px, 1fr);
     gap: 8px;
   }
   .popup-bar-label {
-    gap: 5px;
-    font-size: 12px;
+    gap: 7px;
+    font-size: 10px;
+    white-space: nowrap;
   }
   .popup-bar-label b {
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .chart-axis {
     gap: 8px;
