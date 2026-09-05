@@ -154,77 +154,47 @@ function nextPoint(point: Point, locationId: number): Point {
   };
 }
 
-function MiniBars({
-  points,
-  field,
-  color = "#18201e",
-  large = false,
-}: {
-  points: Point[];
-  field: keyof Point;
-  color?: string;
-  large?: boolean;
+function MiniBars({ points, field, color = "#18201e" }: {
+  points: Point[]; field: keyof Point; color?: string; large?: boolean;
 }) {
-  const maximumBars = large ? 48 : 72;
-  const sampled =
-    points.length <= maximumBars
-      ? points
-      : Array.from(
-          { length: maximumBars },
-          (_, index) =>
-            points[
-              Math.round((index * (points.length - 1)) / (maximumBars - 1))
-            ],
-        );
-  const values = sampled.map((point) => Number(point[field]));
-  const max = Math.max(...values, 1);
+  const [active, setActive] = useState<number | null>(null);
+  const sampled = points.length <= 72 ? points : Array.from({ length: 72 }, (_, i) =>
+    points[Math.round(i * (points.length - 1) / 71)]);
+  const max = Math.max(1, ...sampled.map(p => Number(p[field])));
+  const left = 52, width = 536, top = 12, height = 168;
+  const step = width / Math.max(1, sampled.length);
+  const selected = active === null ? null : sampled[active];
+  const ticks = [...new Set([0, Math.floor((sampled.length - 1) / 3), Math.floor(2 * (sampled.length - 1) / 3), sampled.length - 1])].filter(i => i >= 0);
   return (
-    <div className={`mini-bars ${large ? "large" : ""}`}>
-      {values.map((value, index) => {
-        const point = sampled[index];
-        const pointDate = new Date(point.DataOra);
-        const previousPoint = sampled[index - 1];
-        const startsDay =
-          index === 0 ||
-          pointDate.toDateString() !==
-            new Date(previousPoint.DataOra).toDateString();
-        return (
-          <span
-            className={`bar-column ${startsDay ? "day-start" : ""}`}
-            key={`${point.DataOra}-${value}`}
-          >
-            <i
-              title={`${formatDateTime(point.DataOra)}: ${format(value)}`}
-              style={{
-                height: `${Math.max(8, (value / max) * 100)}%`,
-                backgroundColor: color,
-              }}
-            />
-            {!large && (
-              <small
-                className="bar-label"
-                style={{ "--label-row": index % 4 } as React.CSSProperties}
-              >
-                <b>
-                  {pointDate.toLocaleDateString("ro-RO", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}{" "}
-                  {pointDate.toLocaleTimeString("ro-RO", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </b>
-                <b>{format(value)}</b>
-              </small>
-            )}
-            <span className="bar-tooltip">
-              <b>{pointDate.toLocaleDateString("ro-RO", { day: "2-digit", month: "short" })}</b>
-              <b>{format(value)}</b>
-            </span>
-          </span>
-        );
-      })}
+    <div className="telemetry-chart">
+      <div className="chart-readout" aria-live="polite">
+        {selected ? `${formatDateTime(selected.DataOra)} · ${format(Number(selected[field]))}` : "Atinge o bară pentru dată și valoare"}
+      </div>
+      <svg viewBox="0 0 600 228" className="telemetry-plot" role="img" aria-label="Grafic de telemetrie">
+        {[0, 0.5, 1].map(ratio => <g key={ratio}>
+          <line x1={left} x2={588} y1={top + height * (1 - ratio)} y2={top + height * (1 - ratio)} stroke="#dde4e1" />
+          <text x={44} y={top + height * (1 - ratio) + 4} textAnchor="end" fill="#63706b" fontSize="12">{format(max * ratio)}</text>
+        </g>)}
+        {sampled.map((point, i) => {
+          const value = Number(point[field]);
+          const barHeight = Math.max(0, value / max * height);
+          const dayStart = i > 0 && new Date(point.DataOra).toDateString() !== new Date(sampled[i - 1].DataOra).toDateString();
+          return <g key={`${point.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
+            <rect x={left + i * step} y={top} width={step} height={height} fill="transparent" />
+            {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />}
+            <rect x={left + i * step + step * 0.12} y={top + height - barHeight} width={step * 0.76} height={barHeight} fill={color} opacity={active === i ? 1 : dayStart ? 0.95 : 0.72} />
+            <title>{formatDateTime(point.DataOra)}: {format(value)}</title>
+          </g>;
+        })}
+        {ticks.map((i, n) => {
+          const date = new Date(sampled[i].DataOra);
+          return <text key={i} x={left + i * step + step / 2} y={201} textAnchor={n === 0 ? "start" : n === ticks.length - 1 ? "end" : "middle"} fill="#63706b" fontSize="12">
+            <tspan>{date.toLocaleDateString("ro-RO", {day: "2-digit", month: "short"})}</tspan>
+            <tspan x={left + i * step + step / 2} dy="17">{date.toLocaleTimeString("ro-RO", {hour: "2-digit", minute: "2-digit"})}</tspan>
+          </text>;
+        })}
+      </svg>
+      <div className="chart-detail-hint">{points.length > 72 ? "Privire de ansamblu · " : ""}Deschide graficul pentru toate citirile →</div>
     </div>
   );
 }

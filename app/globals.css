@@ -434,6 +434,8 @@ select {
   margin-top: 24px;
 }
 .chart-panel {
+  display: block;
+  overflow: hidden;
   padding: 0 0 10px;
   border-bottom: 1px solid var(--line);
   min-width: 0;
@@ -1086,12 +1088,12 @@ footer span {
   min-height: 25px;
 }
 .popup-bar-label {
-  display: flex;
+  display: grid;
   justify-content: space-between;
   gap: 12px;
   color: #58645f;
   font-size: 12px;
-  white-space: nowrap;
+  white-space: normal;
 }
 .popup-bar-label b {
   font-weight: 500;
@@ -1164,12 +1166,10 @@ footer span {
   }
   .popup-bar-label {
     gap: 5px;
-    font-size: 10px;
-    overflow: hidden;
+    font-size: 12px;
   }
   .popup-bar-label b {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
   }
   .chart-axis {
     gap: 8px;
@@ -1322,3 +1322,12 @@ footer span {
     grid-column: auto;
   }
 }
+.telemetry-chart { width:100%; min-width:0; }
+.telemetry-plot { display:block; width:100%; height:auto; overflow:hidden; }
+.chart-readout { min-height:38px; font-size:12px; line-height:1.5; color:#53635c; padding:4px 0 10px; overflow-wrap:anywhere; }
+.chart-detail-hint { font-size:12px; color:#53635c; padding:10px 0; }
+.chart-title { gap:12px; flex-wrap:wrap; }
+.chart-axis { gap:12px; flex-wrap:wrap; line-height:1.5; }
+.chart-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.popup-bar-row { content-visibility:auto; contain-intrinsic-size:auto 48px; }
+@media(max-width:720px) { .chart-grid { grid-template-columns:minmax(0,1fr); } .chart-panel { max-width:100%; } }
