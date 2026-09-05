@@ -183,15 +183,16 @@ function MiniBars({
       {values.map((value, index) => {
         const point = sampled[index];
         const pointDate = new Date(point.DataOra);
-        const day = pointDate.getDate();
-        const nextPoint = sampled[index + 1];
-        const monthEnds = nextPoint
-          ? new Date(nextPoint.DataOra).getMonth() !== pointDate.getMonth()
-          : false;
-        const showDay =
-          !large && (index === 0 || index === values.length - 1 || day === 1 || day % 5 === 0 || monthEnds);
+        const previousPoint = sampled[index - 1];
+        const startsDay =
+          index === 0 ||
+          pointDate.toDateString() !==
+            new Date(previousPoint.DataOra).toDateString();
         return (
-          <span className="bar-column" key={`${point.DataOra}-${value}`}>
+          <span
+            className={`bar-column ${startsDay ? "day-start" : ""}`}
+            key={`${point.DataOra}-${value}`}
+          >
             <i
               title={`${formatDateTime(point.DataOra)}: ${format(value)}`}
               style={{
@@ -199,14 +200,73 @@ function MiniBars({
                 backgroundColor: color,
               }}
             />
-            <small className={showDay ? "day-label" : ""}>
-              {showDay ? day : ""}
-            </small>
+            {!large && (
+              <small
+                className="bar-label"
+                style={{ "--label-row": index % 4 } as React.CSSProperties}
+              >
+                <b>
+                  {pointDate.toLocaleDateString("ro-RO", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}{" "}
+                  {pointDate.toLocaleTimeString("ro-RO", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </b>
+                <b>{format(value)}</b>
+              </small>
+            )}
             <span className="bar-tooltip">
               <b>{pointDate.toLocaleDateString("ro-RO", { day: "2-digit", month: "short" })}</b>
               <b>{format(value)}</b>
             </span>
           </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function PopupBars({
+  points,
+  field,
+  color = "#18201e",
+}: {
+  points: Point[];
+  field: keyof Point;
+  color?: string;
+}) {
+  const values = points.map((point) => Number(point[field]));
+  const maximum = Math.max(...values, 1);
+  return (
+    <div className="popup-bars">
+      {points.map((point, index) => {
+        const value = values[index];
+        const previousPoint = points[index - 1];
+        const startsDay =
+          index === 0 ||
+          new Date(point.DataOra).toDateString() !==
+            new Date(previousPoint.DataOra).toDateString();
+        return (
+          <div
+            className={`popup-bar-row ${startsDay ? "day-start" : ""}`}
+            key={`${point.DataOra}-${value}`}
+          >
+            <span className="popup-bar-label">
+              <b>{formatDateTime(point.DataOra)}</b>
+              <strong>{format(value)}</strong>
+            </span>
+            <span className="popup-bar-track">
+              <i
+                style={{
+                  width: `${Math.max(2, (value / maximum) * 100)}%`,
+                  backgroundColor: color,
+                }}
+              />
+            </span>
+          </div>
         );
       })}
     </div>
@@ -1070,11 +1130,49 @@ export default function Home() {
               <span>Minim: {format(popupMin)}</span>
               <span>Maxim: {format(popupMax)}</span>
             </div>
-            <MiniBars
+            <div className="popup-range-toolbar">
+              <label>
+                De la
+                <input
+                  type="date"
+                  min={availableFrom}
+                  max={toDate || availableTo}
+                  value={fromDate}
+                  onChange={(event) => setFromDate(event.target.value)}
+                />
+              </label>
+              <label>
+                Până la
+                <input
+                  type="date"
+                  min={fromDate || availableFrom}
+                  max={availableTo}
+                  value={toDate}
+                  onChange={(event) => setToDate(event.target.value)}
+                />
+              </label>
+              <label className="popup-hours" htmlFor="popup-hours-window">
+                <span>
+                  Ultimele <strong>{hoursWindow} h</strong>
+                </span>
+                <input
+                  id="popup-hours-window"
+                  type="range"
+                  min="1"
+                  max="24"
+                  value={hoursWindow}
+                  onChange={(event) => {
+                    setHoursWindow(Number(event.target.value));
+                    setFromDate("");
+                    setToDate("");
+                  }}
+                />
+              </label>
+            </div>
+            <PopupBars
               points={points}
               field={popup.field}
               color={popup.color}
-              large
             />
           </div>
         </div>
