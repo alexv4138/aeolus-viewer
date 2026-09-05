@@ -468,6 +468,22 @@ select {
   flex: 1 1 0;
   opacity: 0.85;
 }
+.mini-bars .bar-column {
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+.mini-bars .bar-column > i {
+  display: block;
+  width: 100%;
+  margin-top: auto;
+  opacity: 0.85;
+}
+.mini-bars .bar-column small {
+  display: none;
+}
 .chart-axis {
   display: flex;
   justify-content: space-between;
@@ -823,8 +839,31 @@ footer span {
   font-weight: 700;
 }
 .mini-bars.large {
-  height: 420px;
-  gap: 5px;
+  height: 460px;
+  gap: 6px;
+  padding-bottom: 86px;
+}
+.mini-bars.large .bar-column {
+  position: relative;
+}
+.mini-bars.large .bar-column small {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  display: grid;
+  gap: 2px;
+  width: 58px;
+  transform: translateX(-50%) rotate(-58deg);
+  transform-origin: top center;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: left;
+}
+.mini-bars.large .bar-column small b {
+  font-weight: 500;
 }
 .app-shell > .chart-modal {
   position: fixed;

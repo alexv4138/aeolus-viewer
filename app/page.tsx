@@ -165,7 +165,7 @@ function MiniBars({
   color?: string;
   large?: boolean;
 }) {
-  const maximumBars = large ? 240 : 72;
+  const maximumBars = large ? 48 : 72;
   const sampled =
     points.length <= maximumBars
       ? points
@@ -179,17 +179,27 @@ function MiniBars({
   const values = sampled.map((point) => Number(point[field]));
   const max = Math.max(...values, 1);
   return (
-    <div className={`mini-bars ${large ? "large" : ""}`} aria-hidden="true">
-      {values.map((value, index) => (
-        <span
-          key={`${sampled[index].DataOra}-${value}`}
-          title={`${formatDateTime(sampled[index].DataOra)}: ${format(value)}`}
-          style={{
-            height: `${Math.max(8, (value / max) * 100)}%`,
-            backgroundColor: color,
-          }}
-        />
-      ))}
+    <div className={`mini-bars ${large ? "large" : ""}`}>
+      {values.map((value, index) => {
+        const point = sampled[index];
+        return (
+          <span className="bar-column" key={`${point.DataOra}-${value}`}>
+            <i
+              title={`${formatDateTime(point.DataOra)}: ${format(value)}`}
+              style={{
+                height: `${Math.max(8, (value / max) * 100)}%`,
+                backgroundColor: color,
+              }}
+            />
+            {large && (
+              <small>
+                <b>{formatDateTime(point.DataOra)}</b>
+                <b>{format(value)}</b>
+              </small>
+            )}
+          </span>
+        );
+      })}
     </div>
   );
 }
