@@ -8,6 +8,7 @@ import {
   ChevronRight,
   CircleAlert,
   Droplets,
+  Download,
   Eye,
   EyeOff,
   Gauge,
@@ -243,20 +244,7 @@ function PopupBars({
   field: keyof Point;
   color?: string;
 }) {
-  const bucketSize = Math.max(1, Math.ceil(points.length / 160));
-  const buckets = Array.from(
-    { length: Math.ceil(points.length / bucketSize) },
-    (_, index) => {
-      const group = points.slice(index * bucketSize, (index + 1) * bucketSize);
-      const values = group.map((point) => Number(point[field]));
-      return {
-        start: group[0],
-        end: group[group.length - 1],
-        min: Math.min(...values),
-        max: Math.max(...values),
-      };
-    },
-  );
+  const buckets = buildPopupBuckets(points, field);
   const minimum = field === "Energie" ? Math.min(...buckets.map((bucket) => bucket.min)) : 0;
   const maximum = Math.max(...buckets.map((bucket) => bucket.max));
   const range = Math.max(0.000001, maximum - minimum);
@@ -283,7 +271,7 @@ function PopupBars({
             <span className="popup-bar-track">
               <i
                 style={{
-                  width: `${Math.max(2, ((bucket.max - minimum) / range) * 100)}%`,
+                  width: `${Math.max(1, ((bucket.max - minimum) / range) * 100)}%`,
                   maxWidth: "100%",
                   backgroundColor: color,
                 }}
@@ -293,6 +281,23 @@ function PopupBars({
         );
       })}
     </div>
+  );
+}
+
+function buildPopupBuckets(points: Point[], field: keyof Point) {
+  const bucketSize = Math.max(1, Math.ceil(points.length / 160));
+  return Array.from(
+    { length: Math.ceil(points.length / bucketSize) },
+    (_, index) => {
+      const group = points.slice(index * bucketSize, (index + 1) * bucketSize);
+      const values = group.map((point) => Number(point[field]));
+      return {
+        start: group[0],
+        end: group[group.length - 1],
+        min: Math.min(...values),
+        max: Math.max(...values),
+      };
+    },
   );
 }
 function Metric({
@@ -561,6 +566,84 @@ export default function Home() {
     a.download = `telemetrie-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${fromDate || availableFrom}-${toDate || availableTo}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+  async function exportChartPdf() {
+    if (!popup || !points.length) return;
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const buckets = buildPopupBuckets(points, popup.field);
+    const minimum = popup.field === "Energie"
+      ? Math.min(...buckets.map((bucket) => bucket.min))
+      : 0;
+    const maximum = Math.max(...buckets.map((bucket) => bucket.max));
+    const range = Math.max(0.000001, maximum - minimum);
+    const rowsPerPage = 39;
+    const pageWidth = 210;
+    const margin = 12;
+    const labelWidth = 86;
+    const trackX = margin + labelWidth;
+    const trackWidth = pageWidth - margin - trackX;
+    const rowHeight = 6.15;
+    const plain = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const hex = (popup.color ?? "#18201e").replace("#", "");
+    const rgb = hex.length === 6
+      ? [Number.parseInt(hex.slice(0, 2), 16), Number.parseInt(hex.slice(2, 4), 16), Number.parseInt(hex.slice(4, 6), 16)] as const
+      : [24, 32, 30] as const;
+
+    for (let pageStart = 0; pageStart < buckets.length; pageStart += rowsPerPage) {
+      if (pageStart > 0) doc.addPage("a4", "portrait");
+      doc.setTextColor(20, 27, 25);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(plain(popup.label), margin, 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(86, 100, 95);
+      doc.text(plain(selectedTurbine.location), margin, 18);
+      doc.text(
+        plain(`${formatDateTime(points[0].DataOra)} - ${formatDateTime(points.at(-1)!.DataOra)}`),
+        margin,
+        22,
+      );
+      doc.text(`Min: ${format(popupMin)}   Max: ${format(popupMax)}`, pageWidth - margin, 22, { align: "right" });
+
+      buckets.slice(pageStart, pageStart + rowsPerPage).forEach((bucket, pageIndex) => {
+        const globalIndex = pageStart + pageIndex;
+        const previous = buckets[globalIndex - 1];
+        const startsDay = globalIndex === 0 ||
+          new Date(bucket.start.DataOra).toDateString() !== new Date(previous.start.DataOra).toDateString();
+        const period = bucket.start.DataOra === bucket.end.DataOra
+          ? formatDateTime(bucket.start.DataOra)
+          : `${formatDateTime(bucket.start.DataOra)}-${formatDateTime(bucket.end.DataOra)}`;
+        const value = bucket.min === bucket.max
+          ? format(bucket.max)
+          : `${format(bucket.min)}-${format(bucket.max)}`;
+        const y = 29 + pageIndex * rowHeight;
+
+        if (startsDay) {
+          doc.setDrawColor(37, 123, 104);
+          doc.setLineWidth(0.45);
+          doc.line(margin, y - 3.2, pageWidth - margin, y - 3.2);
+        }
+        doc.setFontSize(6.8);
+        doc.setTextColor(startsDay ? 37 : 74, startsDay ? 123 : 86, startsDay ? 104 : 81);
+        doc.text(plain(`${period}  ${value}`), margin, y, { maxWidth: labelWidth - 2 });
+        doc.setFillColor(236, 240, 238);
+        doc.rect(trackX, y - 2.4, trackWidth, 2.7, "F");
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        const width = Math.max(0.7, ((bucket.max - minimum) / range) * trackWidth);
+        doc.rect(trackX, y - 2.4, Math.min(trackWidth, width), 2.7, "F");
+      });
+      doc.setFontSize(7);
+      doc.setTextColor(120, 128, 124);
+      doc.text(
+        `Urban Lentz 2 - pagina ${Math.floor(pageStart / rowsPerPage) + 1}/${Math.ceil(buckets.length / rowsPerPage)}`,
+        pageWidth / 2,
+        290,
+        { align: "center" },
+      );
+    }
+    doc.save(`grafic-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${String(popup.field).toLowerCase()}.pdf`);
   }
   const selectedAlerts: Alert[] = latest.Alarma
     ? [
@@ -1135,12 +1218,17 @@ export default function Home() {
             className="chart-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              className="chart-modal-close"
-              onClick={() => setPopup(null)}
-            >
-              Închide
-            </button>
+            <div className="chart-modal-actions">
+              <button className="chart-pdf-export" onClick={exportChartPdf}>
+                <Download size={15} /> Exportă grafic PDF · A4
+              </button>
+              <button
+                className="chart-modal-close"
+                onClick={() => setPopup(null)}
+              >
+                Închide
+              </button>
+            </div>
             <h2>{popup.label}</h2>
             <p>
               {selectedTurbine.location} ·{" "}
