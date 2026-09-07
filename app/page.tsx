@@ -104,6 +104,20 @@ function formatDate(value: string) {
 function formatDateTime(value: string) {
   return `${formatDate(value)} · ${formatTime(value)}`;
 }
+function formatCsvDateTime(value: string) {
+  const date = value.slice(0, 10).split("-").reverse().join(".");
+  const time = value.slice(11, 16);
+  return `${date} ${time}`;
+}
+function formatCsvNumber(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric)
+    ? numeric.toLocaleString("ro-RO", {
+        useGrouping: false,
+        maximumFractionDigits: 6,
+      })
+    : "";
+}
 
 function nextPoint(point: Point, locationId: number): Point {
   const wind = Math.max(
@@ -533,26 +547,26 @@ export default function Home() {
         selectedTurbine.id,
         selectedTurbine.location,
         p.IDLocatie,
-        p.DataOra,
-        p.TempC,
-        p.PresAtm,
-        p.Umiditate,
-        p.VitVant,
+        formatCsvDateTime(p.DataOra),
+        formatCsvNumber(p.TempC),
+        formatCsvNumber(p.PresAtm),
+        formatCsvNumber(p.Umiditate),
+        formatCsvNumber(p.VitVant),
         p.DirectieVant,
-        p.RadSolara,
-        p.Turatie,
-        p.Voltaj,
-        p.Amperaj,
-        p.Putere,
-        p.Energie,
-        p.Vibratii,
-        p.CupluMec,
-        p.TempInfas,
+        formatCsvNumber(p.RadSolara),
+        formatCsvNumber(p.Turatie),
+        formatCsvNumber(p.Voltaj),
+        formatCsvNumber(p.Amperaj),
+        formatCsvNumber(p.Putere),
+        formatCsvNumber(p.Energie),
+        formatCsvNumber(p.Vibratii),
+        formatCsvNumber(p.CupluMec),
+        formatCsvNumber(p.TempInfas),
         p.Alarma ? "Da" : "Nu",
       ]),
     ];
     const csv =
-      "\uFEFF" +
+      "\uFEFFsep=;\r\n" +
       rows
         .map((r) =>
           r.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(";"),
