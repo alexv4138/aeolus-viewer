@@ -591,6 +591,51 @@ export default function Home() {
     a.click();
     URL.revokeObjectURL(url);
   }
+  async function exportXlsx() {
+    if (!points.length) return;
+    const XLSX = await import("xlsx");
+    const headers = [
+      "Turbină", "Locație", "ID locație", "Data/Ora", "Temperatură aer",
+      "Presiune atmosferică", "Umiditate", "Viteză vânt", "Direcție vânt",
+      "Radiație solară", "Turație", "Voltaj", "Amperaj", "Putere", "Energie",
+      "Vibrații", "Cuplu mecanic", "Temperatura vântului", "Alarmă",
+    ];
+    const data = [
+      headers,
+      ...points.map((p) => [
+        selectedTurbine.id,
+        selectedTurbine.location,
+        Number(p.IDLocatie),
+        formatCsvDateTime(p.DataOra),
+        Number(p.TempC), Number(p.PresAtm), Number(p.Umiditate), Number(p.VitVant),
+        p.DirectieVant,
+        Number(p.RadSolara), Number(p.Turatie), Number(p.Voltaj), Number(p.Amperaj),
+        Number(p.Putere), Number(p.Energie), Number(p.Vibratii), Number(p.CupluMec),
+        Number(p.TempInfas),
+        p.Alarma ? "Da" : "Nu",
+      ]),
+    ];
+    const sheet = XLSX.utils.aoa_to_sheet(data);
+    const numericColumns = [2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    for (let row = 1; row < data.length; row += 1) {
+      for (const column of numericColumns) {
+        const cell = sheet[XLSX.utils.encode_cell({ r: row, c: column })];
+        if (cell) {
+          cell.t = "n";
+          cell.s = { alignment: { horizontal: "right" } };
+        }
+      }
+    }
+    sheet["!cols"] = headers.map((header, index) => ({
+      wch: Math.min(24, Math.max(12, header.length + (index === 3 ? 5 : 2))),
+    }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Telemetrie");
+    XLSX.writeFile(
+      workbook,
+      `telemetrie-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${fromDate || availableFrom}-${toDate || availableTo}.xlsx`,
+    );
+  }
   async function exportChartPdf() {
     if (!popup || !points.length) return;
     const { jsPDF } = await import("jspdf");
@@ -1067,10 +1112,10 @@ export default function Home() {
             </div>
             <button
               type="button"
-              onClick={exportData}
+              onClick={exportXlsx}
               disabled={!points.length}
             >
-              Exportă CSV pentru Excel
+              Exportă XLSX pentru Excel
             </button>
             <button
               type="button"
