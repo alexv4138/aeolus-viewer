@@ -4,20 +4,21 @@ Aplicație de monitorizare pentru turbine eoliene. Interfața este în limba rom
 
 ## Date importate
 
-- `TabelLocatieUseri.xlsx` este importat în `app/fleet-data.ts`: locații, utilizatori, roluri și date de autentificare.
+- `TabelLocatieUseri.xlsx` este importat în `app/fleet-data.ts`: locații, utilizatori, roluri și date publice de profil.
 - `TabelDateTurbine.xlsx` este importat în același fișier: 32 înregistrări istorice de telemetrie pentru locațiile 1 și 2. Intervalul sursă este 24 octombrie 2026, 15:17–16:32, respectiv 25 octombrie 2026, 00:52–02:07; nu conține date de la începutul anului.
 - Utilizatorul cu `TipUtilizator = 1` este administratorul principal. În fișierul actual este Dragos Preda.
 - Există patru locații de operare. Pentru locațiile 3 și 4, tabelul de telemetrie nu conține rânduri istorice; aplicația pornește cu o referință normalizată și adaugă citiri live la fiecare 20 de secunde, astfel încât fiecare utilizator are un panou funcțional.
 
-Datele de acces din fișier sunt folosite doar pentru demonstrație. Pentru producție, parolele trebuie păstrate hash-uit într-un serviciu de autentificare, nu în codul clientului.
+Parolele nu sunt incluse în codul livrat browserului. Sunt stocate în D1 sub formă de hash PBKDF2 cu salt individual, iar autentificarea folosește un cookie de sesiune `HttpOnly`, `Secure` și `SameSite=Lax`.
+
+Notițele sunt salvate în D1 pentru fiecare locație. Administratorul poate adăuga și vedea notițe pentru turbina selectată, iar un operator are acces numai la locația proprie.
 
 ## Actualizare și istoric
 
-- Interfața adaugă o citire nouă la fiecare 20 de secunde, după ultima citire importată, fără să elimine citirile deja afișate în sesiune.
+- Interfața citește istoricul importat din `public/telemetry.json`; nu generează valori simulate.
 - Filtrele de dată sunt limitate la intervalul disponibil pentru turbina aleasă. Graficele nu inventează valori pentru un interval gol; arată clar că nu există citiri.
 - Exportul CSV pentru Excel include toate coloanele de telemetrie din intervalul și locația selectate.
-- `POST /api/telemetry` scrie aceleași cicluri în baza D1 configurată prin `.openai/hosting.json`.
-- Tabela `telemetry` are index pe turbină și timp, pentru interogări rapide ale istoricului.
+- API-urile `/api/auth/*` și `/api/notes` folosesc baza D1 configurată prin `.openai/hosting.json`.
 
 ## Rulare locală
 

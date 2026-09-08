@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -15,7 +15,9 @@ import {
   LockKeyhole,
   LogOut,
   Mouse,
+  Plus,
   ShieldCheck,
+  StickyNote,
   Thermometer,
   UserRound,
   Wind,
@@ -29,6 +31,14 @@ import {
 
 type Point = WorkbookTelemetry;
 type SessionUser = WorkbookUser & { master: boolean };
+type TurbineNote = {
+  id: string;
+  locationId: number;
+  authorUsername: string;
+  authorName: string;
+  body: string;
+  createdAt: number;
+};
 type Turbine = {
   id: string;
   locationId: number;
@@ -42,17 +52,7 @@ type Alert = {
   text: string;
 };
 
-const fallbackMaster: WorkbookUser = {
-  locationId: 0,
-  location: "Control rețea",
-  role: 1,
-  username: "supervisor",
-  password: "northstar-26",
-  name: "Elena Marin",
-  phone: "",
-};
-const users = workbookUsers.length ? workbookUsers : [fallbackMaster];
-const masterAccount = users.find((user) => user.role === 1) ?? fallbackMaster;
+const users = workbookUsers;
 const operatorAccounts = users.filter((user) => user.role !== 1);
 const turbines: Turbine[] = operatorAccounts.map((owner) => ({
   id: `TURBINĂ ${String(owner.locationId).padStart(2, "0")}`,
@@ -371,6 +371,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [current, setCurrent] = useState<SessionUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState(
     turbines[0]?.locationId ?? 0,
   );
@@ -378,25 +379,31 @@ export default function Home() {
   const [records, setRecords] = useState(initialRecords);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [notes, setNotes] = useState<TurbineNote[]>([]);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [noteError, setNoteError] = useState("");
   useEffect(() => {
-    const saved = window.localStorage.getItem("urban-lentz-session");
-    if (saved) {
-      const account = users.find((user) => user.username === saved);
-      if (account) {
-        setCurrent({
-          ...account,
-          master: account.username === masterAccount.username,
-        });
-        setSelectedLocationId(
-          account.locationId || turbines[0]?.locationId || 0,
-        );
-      }
-    }
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) =>
+        response.ok
+          ? (response.json() as Promise<{ user: SessionUser }>)
+          : Promise.reject(),
+      )
+      .then(({ user }) => {
+        setCurrent(user);
+        setSelectedLocationId(user.master ? turbines[0]?.locationId ?? 0 : user.locationId);
+      })
+      .catch(() => setCurrent(null))
+      .finally(() => setAuthChecked(true));
   }, []);
   useEffect(() => {
     fetch("/telemetry.json", { cache: "force-cache" })
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((telemetry: Point[]) => {
+      .then((response) =>
+        response.ok ? (response.json() as Promise<Point[]>) : Promise.reject(),
+      )
+      .then((telemetry) => {
         const grouped = Object.fromEntries(
           turbines.map((turbine) => [
             turbine.locationId,
@@ -419,6 +426,23 @@ export default function Home() {
   const selectedTurbine =
     turbines.find((turbine) => turbine.locationId === selectedLocationId) ??
     turbines[0];
+  useEffect(() => {
+    if (!current || !selectedLocationId) return;
+    setNotesLoading(true);
+    setNoteError("");
+    fetch(`/api/notes?locationId=${selectedLocationId}`, { cache: "no-store" })
+      .then((response) =>
+        (response.json() as Promise<{ error?: string; notes: TurbineNote[] }>).then(
+          (body) => ({ response, body }),
+        ),
+      )
+      .then(({ response, body }) => {
+        if (!response.ok) throw new Error(body.error ?? "Nu am putut încărca notițele.");
+        setNotes(body.notes);
+      })
+      .catch((reason: Error) => setNoteError(reason.message))
+      .finally(() => setNotesLoading(false));
+  }, [current, selectedLocationId]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [hoursWindow, setHoursWindow] = useState(24);
@@ -682,26 +706,45 @@ export default function Home() {
         },
       ];
   const isOperational = latest.Alarma === 0;
-  function signIn(event: React.FormEvent<HTMLFormElement>) {
+  async function signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const account = users.find(
-      (user) =>
-        user.username.toLowerCase() === username.trim().toLowerCase() &&
-        user.password === password,
-    );
-    if (!account) {
-      setError("Verifică numele de utilizator și parola.");
-      return;
-    }
-    const master = account.username === masterAccount.username;
-    setCurrent({ ...account, master });
-    window.localStorage.setItem("urban-lentz-session", account.username);
-    const assigned =
-      turbines.find((turbine) => turbine.locationId === account.locationId) ??
-      turbines[0];
-    setSelectedLocationId(assigned?.locationId ?? 0);
     setError("");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
+      });
+      const body = (await response.json()) as { error?: string; user: SessionUser };
+      if (!response.ok) throw new Error(body.error ?? "Autentificarea nu a reușit.");
+      const account = body.user as SessionUser;
+      setCurrent(account);
+      setPassword("");
+      setSelectedLocationId(account.master ? turbines[0]?.locationId ?? 0 : account.locationId);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Autentificarea nu a reușit.");
+    }
   }
+  async function saveNote(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const bodyText = noteText.trim();
+    if (!bodyText) return;
+    setNoteError("");
+    try {
+      const response = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locationId: selectedLocationId, body: bodyText }),
+      });
+      const body = (await response.json()) as { error?: string; note: TurbineNote };
+      if (!response.ok) throw new Error(body.error ?? "Nota nu a putut fi salvată.");
+      setNotes((existing) => [body.note, ...existing]);
+      setNoteText("");
+    } catch (reason) {
+      setNoteError(reason instanceof Error ? reason.message : "Nota nu a putut fi salvată.");
+    }
+  }
+  if (!authChecked) return <main className="session-loading">Se verifică sesiunea…</main>;
   if (!current)
     return (
       <main className="login-page">
@@ -855,9 +898,10 @@ export default function Home() {
             EET
           </span>
           <button
-            onClick={() => {
-              window.localStorage.removeItem("urban-lentz-session");
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
               setCurrent(null);
+              setNotes([]);
             }}
             title="Deconectare"
           >
@@ -882,11 +926,45 @@ export default function Home() {
               : `Telefon: ${current.phone}`}
           </span>
         </div>
+        <div className="notes-summary">
+          <span className="section-label">NOTIȚE</span>
+          <button type="button" onClick={() => setNotesOpen((open) => !open)}>
+            <StickyNote size={15} />
+            {notes.length ? `${notes.length} notițe` : "Adaugă notă"}
+            <Plus size={14} />
+          </button>
+          <span>{notesLoading ? "Se încarcă…" : notes[0]?.body ?? "Nicio notă pentru această turbină"}</span>
+        </div>
         <div className="system-ok">
           <Check size={16} />
           <span>Sistem operațional</span>
         </div>
       </div>
+      {notesOpen && (
+        <section className="notes-panel" aria-label="Notițele turbinei">
+          <form onSubmit={saveNote}>
+            <label htmlFor="turbine-note">Notă nouă pentru {selectedTurbine.id}</label>
+            <textarea
+              id="turbine-note"
+              value={noteText}
+              onChange={(event) => setNoteText(event.target.value)}
+              maxLength={2000}
+              rows={2}
+              placeholder="Scrie observația…"
+            />
+            <button type="submit" disabled={!noteText.trim()}>Salvează nota</button>
+          </form>
+          {noteError && <p className="form-error">{noteError}</p>}
+          <div className="notes-list">
+            {notes.map((note) => (
+              <article key={note.id}>
+                <p>{note.body}</p>
+                <span>{note.authorName} · {new Date(note.createdAt).toLocaleString("ro-RO")}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="operations-grid">
         <aside className="weather-column">
           <p className="section-label">VREME</p>

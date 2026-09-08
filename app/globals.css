@@ -293,6 +293,91 @@ select {
   color: var(--ink);
   font-size: 13px;
 }
+.notes-summary {
+  min-width: 210px;
+  max-width: 320px;
+}
+.notes-summary button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+.notes-summary > span:last-child {
+  overflow: hidden;
+  max-width: 300px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.notes-panel {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(320px, 1.2fr);
+  gap: 28px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.notes-panel form {
+  display: grid;
+  gap: 8px;
+}
+.notes-panel label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.notes-panel textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  padding: 10px 12px;
+  font: inherit;
+}
+.notes-panel form button {
+  justify-self: start;
+  padding: 8px 14px;
+  border: 0;
+  background: var(--green);
+  color: white;
+  font-weight: 700;
+}
+.notes-panel form button:disabled {
+  opacity: 0.45;
+}
+.notes-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+.notes-list article {
+  padding: 0 0 9px;
+  margin: 0 0 9px;
+  border-bottom: 1px solid var(--line);
+}
+.notes-list p {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+.notes-list span {
+  color: #65716d;
+  font-size: 10px;
+}
+.session-loading {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  color: #65716d;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .system-ok {
   display: flex;
   gap: 7px;
@@ -741,6 +826,10 @@ footer span {
   .identity-row {
     gap: 25px;
   }
+  .notes-panel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
   .fleet-row {
     grid-template-columns: 2fr 1fr 1fr;
   }
@@ -796,6 +885,13 @@ footer span {
     flex-direction: column;
     gap: 12px;
     padding: 15px 0;
+  }
+  .identity-row .notes-summary {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .notes-summary > span:last-child {
+    max-width: 100%;
   }
   .system-ok {
     margin-left: 0;
