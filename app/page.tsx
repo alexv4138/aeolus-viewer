@@ -544,7 +544,7 @@ export default function Home() {
         "Energie",
         "Vibrații",
         "Cuplu mecanic",
-        "Temperatura vântului",
+        "Temperatura generator",
         "Alarmă",
       ],
       ...points.map((p) => [
@@ -602,7 +602,7 @@ export default function Home() {
       "Turbină", "Locație", "ID locație", "Data/Ora", "Temperatură aer",
       "Presiune atmosferică", "Umiditate", "Viteză vânt", "Direcție vânt",
       "Radiație solară", "Turație", "Voltaj", "Amperaj", "Putere", "Energie",
-      "Vibrații", "Cuplu mecanic", "Temperatura vântului", "Alarmă",
+      "Vibrații", "Cuplu mecanic", "Temperatura generator", "Alarmă",
     ];
     const data = [
       headers,
@@ -1057,7 +1057,7 @@ export default function Home() {
                 unit="Nm"
               />
               <KeyStat
-                label="Temperatura vântului"
+                label="Temperatura generator"
                 value={format(latest.TempInfas)}
                 unit="°C"
               />
@@ -1203,7 +1203,7 @@ export default function Home() {
             </b>
           </div>
           <div className="limit-row">
-            <span>Temperatura vântului</span>
+            <span>Temperatura generator</span>
             <b className="warn">{format(latest.TempInfas)} °C</b>
           </div>
           <div className="alarm-list">
