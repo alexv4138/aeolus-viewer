@@ -593,7 +593,7 @@ export default function Home() {
   }
   async function exportXlsx() {
     if (!points.length) return;
-    const XLSX = await import("xlsx");
+    const XLSX = await import("xlsx-js-style");
     const headers = [
       "Turbină", "Locație", "ID locație", "Data/Ora", "Temperatură aer",
       "Presiune atmosferică", "Umiditate", "Viteză vânt", "Direcție vânt",
@@ -620,14 +620,16 @@ export default function Home() {
     ];
     const sheet = XLSX.utils.aoa_to_sheet(data);
     const numericColumns = [2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17];
-    for (let row = 1; row < data.length; row += 1) {
-      for (const column of numericColumns) {
+    for (let row = 0; row < data.length; row += 1) {
+      for (let column = 0; column < headers.length; column += 1) {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: column })];
         if (cell) {
-          // Preserve the Romanian decimal comma exactly in both Excel and
-          // Google Sheets, including integers such as "0" without a suffix.
-          cell.t = "s";
-          delete cell.z;
+          if (row > 0 && numericColumns.includes(column)) {
+            // Preserve the Romanian decimal comma exactly in both Excel and
+            // Google Sheets, including integers such as "0" without a suffix.
+            cell.t = "s";
+            delete cell.z;
+          }
           cell.s = { alignment: { horizontal: "right" } };
         }
       }
