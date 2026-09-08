@@ -118,6 +118,10 @@ function formatCsvNumber(value: unknown) {
       })
     : "";
 }
+function formatXlsxInteger(value: unknown) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? String(Math.round(numeric)) : "";
+}
 
 function nextPoint(point: Point, locationId: number): Point {
   const wind = Math.max(
@@ -605,16 +609,16 @@ export default function Home() {
       ...points.map((p) => [
         selectedTurbine.id,
         selectedTurbine.location,
-        formatCsvNumber(p.IDLocatie),
+        formatXlsxInteger(p.IDLocatie),
         formatCsvDateTime(p.DataOra),
-        formatCsvNumber(p.TempC), formatCsvNumber(p.PresAtm),
-        formatCsvNumber(p.Umiditate), formatCsvNumber(p.VitVant),
+        formatXlsxInteger(p.TempC), formatXlsxInteger(p.PresAtm),
+        formatXlsxInteger(p.Umiditate), formatXlsxInteger(p.VitVant),
         p.DirectieVant,
-        formatCsvNumber(p.RadSolara), formatCsvNumber(p.Turatie),
-        formatCsvNumber(p.Voltaj), formatCsvNumber(p.Amperaj),
-        formatCsvNumber(p.Putere), formatCsvNumber(p.Energie),
-        formatCsvNumber(p.Vibratii), formatCsvNumber(p.CupluMec),
-        formatCsvNumber(p.TempInfas),
+        formatXlsxInteger(p.RadSolara), formatXlsxInteger(p.Turatie),
+        formatXlsxInteger(p.Voltaj), formatXlsxInteger(p.Amperaj),
+        formatXlsxInteger(p.Putere), formatXlsxInteger(p.Energie),
+        formatXlsxInteger(p.Vibratii), formatXlsxInteger(p.CupluMec),
+        formatXlsxInteger(p.TempInfas),
         p.Alarma ? "Da" : "Nu",
       ]),
     ];
@@ -625,8 +629,7 @@ export default function Home() {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: column })];
         if (cell) {
           if (row > 0 && numericColumns.includes(column)) {
-            // Preserve the Romanian decimal comma exactly in both Excel and
-            // Google Sheets, including integers such as "0" without a suffix.
+            // Export whole values while preserving the right-aligned layout.
             cell.t = "s";
             delete cell.z;
           }
