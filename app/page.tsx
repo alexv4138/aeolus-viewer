@@ -622,6 +622,8 @@ export default function Home() {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: column })];
         if (cell) {
           cell.t = "n";
+          // Romanian decimal display in Excel, independent of the raw value.
+          cell.z = "0,######";
           cell.s = { alignment: { horizontal: "right" } };
         }
       }
