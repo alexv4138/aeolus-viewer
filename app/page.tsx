@@ -605,13 +605,16 @@ export default function Home() {
       ...points.map((p) => [
         selectedTurbine.id,
         selectedTurbine.location,
-        Number(p.IDLocatie),
+        formatCsvNumber(p.IDLocatie),
         formatCsvDateTime(p.DataOra),
-        Number(p.TempC), Number(p.PresAtm), Number(p.Umiditate), Number(p.VitVant),
+        formatCsvNumber(p.TempC), formatCsvNumber(p.PresAtm),
+        formatCsvNumber(p.Umiditate), formatCsvNumber(p.VitVant),
         p.DirectieVant,
-        Number(p.RadSolara), Number(p.Turatie), Number(p.Voltaj), Number(p.Amperaj),
-        Number(p.Putere), Number(p.Energie), Number(p.Vibratii), Number(p.CupluMec),
-        Number(p.TempInfas),
+        formatCsvNumber(p.RadSolara), formatCsvNumber(p.Turatie),
+        formatCsvNumber(p.Voltaj), formatCsvNumber(p.Amperaj),
+        formatCsvNumber(p.Putere), formatCsvNumber(p.Energie),
+        formatCsvNumber(p.Vibratii), formatCsvNumber(p.CupluMec),
+        formatCsvNumber(p.TempInfas),
         p.Alarma ? "Da" : "Nu",
       ]),
     ];
@@ -621,10 +624,10 @@ export default function Home() {
       for (const column of numericColumns) {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: column })];
         if (cell) {
-          cell.t = "n";
-          // Numeric format; Excel/Sheets localizes the decimal mark (comma in
-          // Romanian) without treating the comma as a thousands separator.
-          cell.z = "0.######";
+          // Preserve the Romanian decimal comma exactly in both Excel and
+          // Google Sheets, including integers such as "0" without a suffix.
+          cell.t = "s";
+          delete cell.z;
           cell.s = { alignment: { horizontal: "right" } };
         }
       }
@@ -637,6 +640,7 @@ export default function Home() {
     XLSX.writeFile(
       workbook,
       `telemetrie-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${fromDate || availableFrom}-${toDate || availableTo}.xlsx`,
+      { cellStyles: true },
     );
   }
   async function exportChartPdf() {
