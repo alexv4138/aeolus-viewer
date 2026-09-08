@@ -5,7 +5,7 @@ Aplicație de monitorizare pentru turbine eoliene. Interfața este în limba rom
 ## Date importate
 
 - `TabelLocatieUseri.xlsx` este importat în `app/fleet-data.ts`: locații, utilizatori, roluri și date de autentificare.
-- `TabelDateTurbine.xlsx` este importat în același fișier: 32 înregistrări istorice de telemetrie pentru locațiile 1 și 2.
+- `TabelDateTurbine.xlsx` este importat în același fișier: 32 înregistrări istorice de telemetrie pentru locațiile 1 și 2. Intervalul sursă este 24 octombrie 2026, 15:17–16:32, respectiv 25 octombrie 2026, 00:52–02:07; nu conține date de la începutul anului.
 - Utilizatorul cu `TipUtilizator = 1` este administratorul principal. În fișierul actual este Dragos Preda.
 - Există patru locații de operare. Pentru locațiile 3 și 4, tabelul de telemetrie nu conține rânduri istorice; aplicația pornește cu o referință normalizată și adaugă citiri live la fiecare 20 de secunde, astfel încât fiecare utilizator are un panou funcțional.
 
@@ -13,8 +13,10 @@ Datele de acces din fișier sunt folosite doar pentru demonstrație. Pentru prod
 
 ## Actualizare și istoric
 
-- Interfața adaugă o citire nouă la fiecare 20 de secunde.
-- Pe această ramură, ciclurile sunt simulate exclusiv în browser și nu sunt scrise într-o bază de date.
+- Interfața adaugă o citire nouă la fiecare 20 de secunde, după ultima citire importată, fără să elimine citirile deja afișate în sesiune.
+- Filtrele de dată sunt limitate la intervalul disponibil pentru turbina aleasă. Graficele nu inventează valori pentru un interval gol; arată clar că nu există citiri.
+- Exportul CSV pentru Excel include toate coloanele de telemetrie din intervalul și locația selectate.
+- `POST /api/telemetry` scrie aceleași cicluri în baza D1 configurată prin `.openai/hosting.json`.
 - Tabela `telemetry` are index pe turbină și timp, pentru interogări rapide ale istoricului.
 
 ## Rulare locală
@@ -30,13 +32,23 @@ Pentru compilarea de producție:
 npm run build
 ```
 
-## Ramura `demo-static`
+## Export static pentru arrows.ro/turbina
 
-Această ramură este pentru demonstrații pe găzduire statică. Autentificarea și datele de telemetrie sunt încărcate în JavaScript în browser, iar citirile simulate se actualizează la fiecare 20 de secunde. Nu este necesar un backend sau o bază de date pentru rulare, însă datele nu sunt persistente și loginul nu este potrivit pentru producție.
+Rulează `sincronizeaza-static.bat` din ramura principală. Scriptul creează o copie locală a ramurii `demo-static`, copiază stilurile, datele demonstrative și video-urile compatibile, reconstruiește pagina statică și publică folderul `turbina` în Git.
+
+După rulare, urcă **tot conținutul** folderului `wind-turbine-monitor-static\turbina` în folderul `/turbina/` de pe hosting. Ramura principală păstrează baza D1 și API-ul; pagina complet statică rămâne doar o demonstrație.
 
 ## Structură
 
 - `app/page.tsx` — autentificare, dashboard individual și panou administrator.
 - `app/fleet-data.ts` — setul de date importat din cele două fișiere Excel.
-- `app/fleet-data.ts` — datele locale pentru demo.
+- `app/api/telemetry/route.ts` — persistarea ciclurilor de telemetrie în D1.
 - `db/schema.ts` — schema și indecșii bazei de date.
+
+## Ramuri și publicare
+
+- `master` este ramura de lucru pentru aplicația Sites.
+- `main` este menținută identică cu `master`, pentru compatibilitate cu GitHub și alte servicii care folosesc `main` ca ramură implicită.
+- `demo-static` este varianta statică pentru hosting FTP, fără API sau bază D1. Este folosită numai pentru `/turbina/` pe arrows.ro.
+
+La orice modificare a aplicației Sites: verifică build-ul, publică același commit pe `master` și `main`, apoi creează și publică versiunea Sites. Nu publica din `demo-static` către Sites. Pentru modificări FTP, rulează `sincronizeaza-static.bat` și publică numai folderul static rezultat.
