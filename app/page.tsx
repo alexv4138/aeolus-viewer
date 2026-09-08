@@ -565,11 +565,21 @@ export default function Home() {
         p.Alarma ? "Da" : "Nu",
       ]),
     ];
+    // Keep numeric cells unquoted so Excel recognises them as numbers and
+    // applies its normal right alignment (including comma decimals).
+    const numericColumns = new Set([
+      2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    ]);
+    const csvCell = (value: unknown, column: number, header: boolean) => {
+      const text = String(value ?? "");
+      if (!header && numericColumns.has(column) && text !== "") return text;
+      return `"${text.replaceAll('"', '""')}"`;
+    };
     const csv =
       "\uFEFFsep=;\r\n" +
       rows
-        .map((r) =>
-          r.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(";"),
+        .map((row, rowIndex) =>
+          row.map((value, column) => csvCell(value, column, rowIndex === 0)).join(";"),
         )
         .join("\r\n");
     const url = URL.createObjectURL(
