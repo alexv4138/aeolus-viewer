@@ -123,56 +123,6 @@ function formatXlsxInteger(value: unknown) {
   return Number.isFinite(numeric) ? String(Math.round(numeric)) : "";
 }
 
-function nextPoint(point: Point, locationId: number): Point {
-  const wind = Math.max(
-    1.1,
-    Math.min(14, point.VitVant + (Math.random() - 0.45) * 0.5),
-  );
-  const power = Math.max(
-    12,
-    point.Putere + (wind - point.VitVant) * 24 + (Math.random() - 0.45) * 7,
-  );
-  return {
-    ...point,
-    IDLocatie: locationId,
-    DataOra: new Date(new Date(point.DataOra).getTime() + 20_000).toISOString(),
-    TempC: Number((point.TempC + (Math.random() - 0.47) * 0.22).toFixed(1)),
-    PresAtm: Number((point.PresAtm + (Math.random() - 0.5) * 0.4).toFixed(1)),
-    Umiditate: Number(
-      Math.max(
-        35,
-        Math.min(94, point.Umiditate + (Math.random() - 0.5) * 0.8),
-      ).toFixed(1),
-    ),
-    VitVant: Number(wind.toFixed(2)),
-    RadSolara: Number(
-      Math.max(0, point.RadSolara + (Math.random() - 0.5) * 6).toFixed(2),
-    ),
-    Turatie: Number(
-      Math.max(
-        0,
-        point.Turatie + (wind - point.VitVant) * 13 + (Math.random() - 0.5) * 3,
-      ).toFixed(2),
-    ),
-    Voltaj: Number((point.Voltaj + (Math.random() - 0.5) * 0.9).toFixed(2)),
-    Amperaj: Number(
-      Math.max(0.1, point.Amperaj + (power - point.Putere) / 50).toFixed(2),
-    ),
-    Putere: Number(power.toFixed(3)),
-    Energie: Number((point.Energie + power / 3600).toFixed(6)),
-    Vibratii: Number(
-      Math.max(0.01, point.Vibratii + (Math.random() - 0.5) * 0.012).toFixed(3),
-    ),
-    CupluMec: Number(
-      (point.CupluMec + (Math.random() - 0.5) * 0.45).toFixed(2),
-    ),
-    TempInfas: Number(
-      (point.TempInfas + (Math.random() - 0.5) * 0.18).toFixed(2),
-    ),
-    Alarma: wind > 12.5 ? 1 : 0,
-  };
-}
-
 function MiniBars({ points, field, color = "#18201e" }: {
   points: Point[]; field: keyof Point; color?: string; large?: boolean;
 }) {
@@ -456,29 +406,15 @@ export default function Home() {
           ]),
         ) as Record<number, Point[]>;
         setRecords(grouped);
+        const latestImported = telemetry.reduce<Point | null>(
+          (latest, point) =>
+            !latest || point.DataOra > latest.DataOra ? point : latest,
+          null,
+        );
+        if (latestImported) setLastUpdate(new Date(latestImported.DataOra));
         setDataLoaded(true);
       })
       .catch(() => setDataLoaded(true));
-  }, []);
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      void fetch("/api/telemetry", { method: "POST" });
-      setRecords((previous) =>
-        Object.fromEntries(
-          turbines.map((turbine) => {
-            const history = previous[turbine.locationId] ?? [];
-            return [
-              turbine.locationId,
-              history.length
-                ? [...history, nextPoint(history.at(-1)!, turbine.locationId)]
-                : history,
-            ];
-          }),
-        ),
-      );
-      setLastUpdate(new Date());
-    }, 20000);
-    return () => window.clearInterval(timer);
   }, []);
   const selectedTurbine =
     turbines.find((turbine) => turbine.locationId === selectedLocationId) ??
@@ -1023,7 +959,7 @@ export default function Home() {
               )}
             </div>
             <span className="unit-note">
-              Ciclu curent • actualizare în 20 s
+              Ultima citire importată
             </span>
           </div>
           <div className="parameter-overview">
@@ -1118,7 +1054,7 @@ export default function Home() {
               </span>
               <small>
                 {allPoints.length
-                  ? "Citiri importate din tabel + actualizări demonstrative"
+                  ? "Citiri importate din tabel"
                   : "Se încarcă citirile importate din tabel"}
               </small>
             </div>
@@ -1241,7 +1177,7 @@ export default function Home() {
               <h2>Starea flotei</h2>
             </div>
             <span>
-              Date importate din TabelDateTurbine.xlsx; actualizare la 20 s.
+              Date importate din TabelDateTurbine.xlsx.
             </span>
           </div>
           <div className="fleet-table">
