@@ -3,28 +3,29 @@ import { workbookUsers, type WorkbookUser } from "@/app/fleet-data";
 
 const COOKIE_NAME = "urban_lentz_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 30;
-const PBKDF2_ITERATIONS = 210_000;
+// Cloudflare Workers Web Crypto currently accepts at most 100,000 PBKDF2 rounds.
+const PBKDF2_ITERATIONS = 100_000;
 
 const credentials: Record<string, { salt: string; hash: string }> = {
   "bogdan@rolix.ro": {
     salt: "ae62b8b86d3e84453d2295637b4a0b83",
-    hash: "310da03cd0aedb8fe0fed7ff97ed2f21b6a676517707eff5c1f69623b96f3fa9",
+    hash: "960a8a53949637c1efe7740ee3fd14d205218db9a043c818c1461be74a57227f",
   },
   "ion.malael@comoti.ro": {
     salt: "69d778d2fc1e778f65f156fd7a6f0c6e",
-    hash: "8cf23444ec7ca7124d50c5ce9dd37a142b087fc92a12f772402cb575521d76ae",
+    hash: "b6a955aa5301f063b7b5a72dfe590edf8de0f99e4e145ee87408de06aac01e28",
   },
   "adrian.pandele@arrows.ro": {
     salt: "9fb06679982ed3463974ac3c507abe04",
-    hash: "d292e02b2136cdac4176deefe667c7060eab78338aa69e1e55f38a5179ccb38b",
+    hash: "7de6487720be1bf224d20afe12b55ca044cbca5f9f32b7e6112f691cd32496bd",
   },
   "bogdan.o.duran@gmail.com": {
     salt: "0d4d99b7b223bf8a52ed123e2c78ae6a",
-    hash: "5f2d81c61d2767fd0dad0ee328ebf4d17f359260d6f0aa019c94f190c36028d4",
+    hash: "e3e3903d55faf6800b98639d031a20479d29478502023cabb4d05353c74bd9a9",
   },
   "dragospreda@yahoo.com": {
     salt: "3e9107a21b0cd2ed94ad98dfa08e0253",
-    hash: "eac76ee1f8055f975df07801d2795a91a20bc97cc0ff8a7f57736637b269848d",
+    hash: "bd9f0cca0dc18890e9ba26ede1b35b36bf799dcc8673f361293affd433df72ad",
   },
 };
 
