@@ -34,21 +34,19 @@ npm run build
 
 ## Export static pentru arrows.ro/turbina
 
-Rulează `sincronizeaza-static.bat` din ramura principală. Scriptul creează o copie locală a ramurii `demo-static`, copiază stilurile, datele demonstrative și video-urile compatibile, reconstruiește pagina statică și publică folderul `turbina` în Git.
+Rulează `sincronizeaza-static.bat` din ramura principală. Scriptul sincronizează numai conținutul comun (`app`, `components`, `public` și dependențele) către `demo-static`, fără să suprascrie configurațiile proprii ale exportului static. Apoi reconstruiește folderul `turbina` și publică ambele ramuri pe GitHub.
 
-După rulare, urcă **tot conținutul** folderului `wind-turbine-monitor-static\turbina` în folderul `/turbina/` de pe hosting. Ramura principală păstrează baza D1 și API-ul; pagina complet statică rămâne doar o demonstrație.
+După rulare, urcă **tot conținutul** folderului `wind-turbine-monitor-static\turbina` în folderul `/turbina/` de pe hosting. Exportul static citește `telemetry.json`, păstrează sesiunea local și generează exporturile în browser.
 
 ## Structură
 
 - `app/page.tsx` — autentificare, dashboard individual și panou administrator.
-- `app/fleet-data.ts` — setul de date importat din cele două fișiere Excel.
-- `app/api/telemetry/route.ts` — persistarea ciclurilor de telemetrie în D1.
-- `db/schema.ts` — schema și indecșii bazei de date.
+- `public/telemetry.json` — citirile importate, folosite de dashboard și grafice.
+- `turbina/` — exportul pregătit pentru FTP.
 
 ## Ramuri și publicare
 
-- `master` este ramura de lucru pentru aplicația Sites.
-- `main` este menținută identică cu `master`, pentru compatibilitate cu GitHub și alte servicii care folosesc `main` ca ramură implicită.
+- `main` este ramura principală pentru aplicația Sites și GitHub.
 - `demo-static` este varianta statică pentru hosting FTP, fără API sau bază D1. Este folosită numai pentru `/turbina/` pe arrows.ro.
 
-La orice modificare a aplicației Sites: verifică build-ul, publică același commit pe `master` și `main`, apoi creează și publică versiunea Sites. Nu publica din `demo-static` către Sites. Pentru modificări FTP, rulează `sincronizeaza-static.bat` și publică numai folderul static rezultat.
+Nu publica din `demo-static` către Sites. Pentru modificări de conținut și FTP, rulează `sincronizeaza-static.bat`; el publică `main` și `demo-static` cu fișierele potrivite.
