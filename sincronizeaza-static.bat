@@ -34,7 +34,7 @@ pushd "%STATIC_DIR%"
 if not exist node_modules call npm install
 
 echo Se reconstruieste pagina statica pentru FTP...
-call npm run build || (popd & pause & exit /b 1)
+call npm run build
 if not exist "dist\client\index.html" (
   echo Exportul static nu a produs index.html.
   popd
