@@ -24,16 +24,16 @@ if not exist node_modules call npm install
 
 echo Se reconstruieste pagina statica pentru FTP...
 call npm run build
-if not exist "dist\client\index.html" (
+if not exist "dist\client\turbina\index.html" (
   echo Exportul static nu a produs index.html.
   popd
   pause
   exit /b 1
 )
-robocopy "dist\client" "turbina" /E /XO /NFL /NDL /NJH /NJS
+robocopy "dist\client\turbina" "turbina" /MIR /NFL /NDL /NJH /NJS
 if errorlevel 8 (echo Copierea exportului a esuat.& popd & pause & exit /b 1)
 
-git add app\dashboard-client.tsx app\page.tsx app\layout.tsx app\globals.css app\fleet-data.ts next.config.ts public turbina
+git add app README.md next.config.ts vite.config.ts public turbina
 git diff --cached --quiet || git commit -m "Sync static FTP export"
 git push github demo-static
 popd
