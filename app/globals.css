@@ -214,7 +214,7 @@ select {
 }
 .app-shell {
   min-height: 100vh;
-  padding: 24px clamp(18px, 4vw, 70px) 0;
+  padding: 14px clamp(18px, 4vw, 70px) 0;
   position: relative;
   overflow: hidden;
 }
@@ -531,6 +531,7 @@ select {
 .chart-title {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 10px;
   padding-bottom: 12px;
 }
@@ -551,6 +552,44 @@ select {
   border: 1px solid var(--line);
   font-size: 11px;
 }
+.chart-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.action-button {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.action-button--export {
+  border-color: var(--green);
+  color: #fff;
+  background: var(--green);
+}
+.action-button--primary {
+  border-color: var(--blue);
+  color: #fff;
+  background: var(--blue);
+}
+.action-button--secondary {
+  border-color: var(--line);
+  color: var(--ink);
+  background: #fff;
+}
+.action-button:hover { filter: brightness(0.96); }
+.action-button:focus-visible,
+.control-box:focus-within { outline: 2px solid color-mix(in srgb, var(--blue) 35%, transparent); outline-offset: 2px; }
 .chart-panel[role="button"] { cursor: pointer; }
 .mini-bars {
   height: 166px;
@@ -1480,9 +1519,49 @@ footer span {
 .telemetry-chart { width:100%; min-width:0; }
 .telemetry-plot { display:block; width:100%; height:auto; overflow:hidden; }
 .chart-readout { min-height:38px; font-size:12px; line-height:1.5; color:#53635c; padding:4px 0 10px; overflow-wrap:anywhere; }
-.chart-detail-hint { font-size:12px; color:#53635c; padding:10px 0; }
+.chart-readout:empty { min-height: 8px; padding: 0; }
 .chart-title { gap:12px; flex-wrap:wrap; }
 .chart-axis { gap:12px; flex-wrap:wrap; line-height:1.5; }
 .chart-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
 .popup-bar-row { content-visibility:auto; contain-intrinsic-size:auto 19px; }
 @media(max-width:720px) { .chart-grid { grid-template-columns:minmax(0,1fr); } .chart-panel { max-width:100%; } }
+
+/* Shared control language for date filters, range controls, and actions. */
+.control-box {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+.control-box input[type="date"] {
+  min-width: 132px;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+}
+.range-inputs .control-box {
+  display: grid;
+  align-items: stretch;
+  gap: 3px;
+  min-width: 145px;
+  padding: 6px 9px;
+}
+.range-inputs .control-box input[type="date"] { min-width: 0; width: 100%; }
+.hours-window.control-box { min-width: 176px; }
+.band-toggle.control-box { color: var(--ink); font-size: 12px; white-space: nowrap; }
+.popup-range-toolbar .control-box { min-height: 34px; }
+.popup-range-toolbar .control-box input[type="date"] { min-width: 145px; }
+.range-toolbar > .action-button { min-height: 34px; }
+.chart-modal-actions .action-button { min-height: 36px; }
+@media (max-width: 720px) {
+  .chart-actions { width: 100%; margin-left: 0; }
+  .chart-actions .action-button { flex: 1; }
+  .range-inputs .control-box { min-width: 0; flex: 1; }
+  .popup-range-toolbar .control-box input[type="date"] { min-width: 0; width: 100%; }
+}

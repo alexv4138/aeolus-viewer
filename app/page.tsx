@@ -166,20 +166,9 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
   const step = width / Math.max(1, buckets.length);
   const selected = active === null ? null : buckets[active];
   const ticks = [...new Set([0, Math.floor((buckets.length - 1) / 3), Math.floor(2 * (buckets.length - 1) / 3), buckets.length - 1])].filter(i => i >= 0);
-  const compressed = points.length > maximumBars;
   const useSpline = !large && points.length > 1;
   const showRangeBand = showBand && points.length > maximumBars;
-  const millisecondsPerBar = points.length > 1
-    ? (new Date(points.at(-1)!.DataOra).getTime() - new Date(points[0].DataOra).getTime()) / bucketCount
-    : 0;
   const axisDigits = range < 0.1 ? 3 : range < 1 ? 2 : 1;
-  const approximateHours = Math.max(1, Math.round(millisecondsPerBar / 3_600_000));
-  const approximateDays = Math.max(1, Math.round(millisecondsPerBar / 86_400_000));
-  const intervalLabel = !compressed
-    ? "fiecare citire"
-    : millisecondsPerBar < 86_400_000
-      ? `grupe de aproximativ ${approximateHours} ${approximateHours === 1 ? "oră" : "ore"}`
-      : `grupe de aproximativ ${approximateDays} ${approximateDays === 1 ? "zi" : "zile"}`;
   return (
     <div className="telemetry-chart">
       <div className="chart-readout" aria-live="polite">
@@ -187,7 +176,7 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
           ? selected.compressed
             ? `${formatDateTime(selected.start.DataOra)} – ${formatDateTime(selected.end.DataOra)} · min ${format(selected.min)} · max ${format(selected.max)}`
             : `${formatDateTime(selected.start.DataOra)} · ${format(selected.max)}`
-          : `${intervalLabel} · atinge o bară pentru interval și valori`}
+        : ""}
       </div>
       <svg viewBox="0 0 600 228" className="telemetry-plot" role="img" aria-label="Grafic de telemetrie">
         {[0, 0.5, 1].map(ratio => <g key={ratio}>
@@ -218,7 +207,7 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
           const minHeight = Math.max(2, (bucket.min - dataMin) / range * height);
           const maxHeight = Math.max(minHeight, (bucket.max - dataMin) / range * height);
           const dayStart = i > 0 && new Date(bucket.start.DataOra).toDateString() !== new Date(buckets[i - 1].start.DataOra).toDateString();
-          return <g key={`${bucket.start.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
+          return <g key={`${bucket.start.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)}>
             <rect x={left + i * step} y={top} width={step} height={height} fill="transparent" />
             {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeWidth="1.5" strokeOpacity="0.5" strokeDasharray="3 3" />}
             {!useSpline && showRangeBand && bucket.compressed && <rect x={left + i * step + step * 0.08} y={top + height - maxHeight} width={step * 0.84} height={maxHeight} fill={color} opacity="0.28" />}
@@ -235,7 +224,6 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
           </text>;
         })}
       </svg>
-      <div className="chart-detail-hint">{useSpline ? "linie spline · valori" : intervalLabel}{showRangeBand ? " · zona deschisă = maxim, zona închisă = minim" : ""} · deschide pentru toate citirile →</div>
     </div>
   );
 }
@@ -360,6 +348,7 @@ function ChartPanel({
   wide,
   onOpen,
   onExport,
+  onExportExcel,
   showBand = false,
 }: {
   label: string;
@@ -370,6 +359,7 @@ function ChartPanel({
   wide?: boolean;
   onOpen?: () => void;
   onExport?: () => void;
+  onExportExcel?: () => void;
   showBand?: boolean;
 }) {
   if (!points.length)
@@ -396,13 +386,16 @@ function ChartPanel({
       <div className="chart-title">
         <strong>{label}</strong>
         <span>{sublabel}</span>
-        {onExport && <button type="button" className="chart-inline-export" onClick={(event) => { event.stopPropagation(); onExport(); }}><Download size={13} /> PDF</button>}
+        {(onExport || onExportExcel) && <div className="chart-actions" onClick={(event) => event.stopPropagation()}>
+          {onExport && <button type="button" className="action-button action-button--export" onClick={onExport}><Download size={13} /> PDF</button>}
+          {onExportExcel && <button type="button" className="action-button action-button--export" onClick={onExportExcel}>Excel</button>}
+        </div>}
       </div>
       <MiniBars points={points} field={field} color={color} showBand={showBand} />
       <div className="chart-axis">
         <span>{formatDateTime(points[0].DataOra)}</span>
         <span>
-          {points.length} citiri · min {format(min)} · max {format(max)}
+          {points.length} citiri · {format(min)}–{format(max)}
         </span>
         <span>{formatDateTime(points.at(-1)!.DataOra)}</span>
       </div>
@@ -1134,7 +1127,7 @@ export default function Home() {
           </div>
           <div className="range-toolbar">
             <div className="range-inputs">
-              <label>
+              <label className="control-box">
                 De la{" "}
                 <input
                   type="date"
@@ -1144,7 +1137,7 @@ export default function Home() {
                   onChange={(e) => setFromDate(e.target.value)}
                 />
               </label>
-              <label>
+              <label className="control-box">
                 Până la{" "}
                 <input
                   type="date"
@@ -1155,7 +1148,7 @@ export default function Home() {
                 />
               </label>
             </div>
-            <div className="hours-window">
+            <div className="control-box hours-window">
               <span className="mouse-icon" aria-hidden="true">
                 <Mouse />
                 <i />
@@ -1178,7 +1171,7 @@ export default function Home() {
                 }}
               />
             </div>
-            <label className="band-toggle">
+            <label className="control-box band-toggle">
               <input type="checkbox" checked={showRangeBand} onChange={(event) => setShowRangeBand(event.target.checked)} />
               Bandă min–max
             </label>
@@ -1189,14 +1182,10 @@ export default function Home() {
                   ? `${formatDate(availableFrom)} – ${formatDate(availableTo)} · ${allPoints.length} citiri`
                   : "Nu există citiri"}
               </span>
-              <small>
-                {allPoints.length
-                  ? "Citiri importate din tabel"
-                  : "Se încarcă citirile importate din tabel"}
-              </small>
             </div>
             <button
               type="button"
+              className="action-button action-button--primary"
               onClick={exportXlsx}
               disabled={!points.length}
             >
@@ -1204,7 +1193,7 @@ export default function Home() {
             </button>
             <button
               type="button"
-              className="range-reset"
+              className="action-button action-button--secondary range-reset"
               disabled={!fromDate && !toDate}
               onClick={() => {
                 setFromDate("");
@@ -1230,6 +1219,7 @@ export default function Home() {
                 })
               }
               onExport={() => exportMainPdf("Putere", "PUTERE / W", "#bd861c")}
+              onExportExcel={exportXlsx}
             />
             <ChartPanel
               label="VÂNT / m/s"
@@ -1246,6 +1236,7 @@ export default function Home() {
                 })
               }
               onExport={() => exportMainPdf("VitVant", "VÂNT / m/s", "#257b68")}
+              onExportExcel={exportXlsx}
             />
           </div>
           <ChartPanel
@@ -1264,6 +1255,7 @@ export default function Home() {
               })
             }
             onExport={() => exportMainPdf("Energie", "ENERGIE / kWh", "#167bb8")}
+            onExportExcel={exportXlsx}
           />
         </section>
         <aside className="alarm-column">
@@ -1380,17 +1372,17 @@ export default function Home() {
           >
             <div className="chart-modal-actions">
               <h2>{popup.label}</h2>
-              <button className="chart-pdf-export" onClick={() => exportChartPdf()}>
+              <button className="action-button action-button--export" onClick={() => exportChartPdf()}>
                 <Download size={15} /> Exportă grafic PDF · A4
               </button>
-              <button className="chart-pdf-export chart-xlsx-export" onClick={exportXlsx}>
+              <button className="action-button action-button--export" onClick={exportXlsx}>
                 Exportă Excel
               </button>
-              <button className="chart-modal-close" onClick={() => setPopupHorizontal((value) => !value)}>
+              <button className="action-button action-button--secondary" onClick={() => setPopupHorizontal((value) => !value)}>
                 {popupHorizontal ? "Grafic vertical" : "Grafic orizontal"}
               </button>
               <button
-                className="chart-modal-close"
+                className="action-button action-button--secondary"
                 onClick={() => setPopup(null)}
               >
                 Închide
@@ -1408,7 +1400,7 @@ export default function Home() {
               <span>Maxim: {format(popupMax)}</span>
             </div>
             <div className="popup-range-toolbar">
-              <label>
+              <label className="control-box">
                 De la
                 <input
                   type="date"
@@ -1418,7 +1410,7 @@ export default function Home() {
                   onChange={(event) => setFromDate(event.target.value)}
                 />
               </label>
-              <label>
+              <label className="control-box">
                 Până la
                 <input
                   type="date"
