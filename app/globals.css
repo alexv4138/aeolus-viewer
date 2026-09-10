@@ -1014,11 +1014,21 @@ footer span {
   z-index: 20;
 }
 .chart-modal {
-  background: #fff;
-  padding: 3vh 4vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 30, 35, 0.48);
+  padding: 4vh 4vw;
   overflow: auto;
 }
 .chart-modal-content {
+  width: min(1120px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  padding: 24px 28px 28px;
+  box-shadow: 0 18px 60px rgba(15, 30, 35, 0.22);
+  border: 1px solid rgba(15, 30, 35, 0.12);
   min-height: 0;
 }
 .chart-modal-actions {
@@ -1434,7 +1444,10 @@ footer span {
     padding: 20px 16px;
   }
   .chart-modal-content {
-    min-height: calc(100dvh - 40px);
+    width: min(680px, 94vw);
+    max-height: 88dvh;
+    padding: 18px 16px 20px;
+    min-height: 0;
   }
   .mini-bars.large {
     height: 55dvh;

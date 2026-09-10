@@ -491,6 +491,14 @@ export default function Home() {
     field: keyof Point;
     color?: string;
   } | null>(null);
+  useEffect(() => {
+    if (!popup) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPopup(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [popup]);
   const allPoints = [...(records[selectedTurbine?.locationId] ?? [])].sort(
     (a, b) => new Date(a.DataOra).getTime() - new Date(b.DataOra).getTime(),
   );
