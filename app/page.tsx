@@ -134,6 +134,7 @@ function smoothPath(values: number[], xFor: (index: number) => number, yFor: (va
   }, "");
 }
 
+// Chart mode is controlled globally by the toolbar band toggle.
 function MiniBars({ points, field, color = "#18201e", large = false, showBand = false }: {
   points: Point[]; field: keyof Point; color?: string; large?: boolean; showBand?: boolean;
 }) {
