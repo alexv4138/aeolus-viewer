@@ -134,13 +134,13 @@ function smoothPath(values: number[], xFor: (index: number) => number, yFor: (va
   }, "");
 }
 
-function MiniBars({ points, field, color = "#18201e", large = false }: {
-  points: Point[]; field: keyof Point; color?: string; large?: boolean;
+function MiniBars({ points, field, color = "#18201e", large = false, showBand = false }: {
+  points: Point[]; field: keyof Point; color?: string; large?: boolean; showBand?: boolean;
 }) {
   const [active, setActive] = useState<number | null>(null);
   // Dashboard charts stay compact and show the value trace only. Expanded
   // charts use up to 50 grouped bars so the min/max band remains readable.
-  const maximumBars = large ? 50 : 24;
+  const maximumBars = showBand ? 50 : points.length;
   const bucketCount = Math.min(maximumBars, points.length);
   const buckets = Array.from(
     { length: bucketCount },
@@ -167,7 +167,7 @@ function MiniBars({ points, field, color = "#18201e", large = false }: {
   const ticks = [...new Set([0, Math.floor((buckets.length - 1) / 3), Math.floor(2 * (buckets.length - 1) / 3), buckets.length - 1])].filter(i => i >= 0);
   const compressed = points.length > maximumBars;
   const useSpline = !large && points.length > 1;
-  const showRangeBand = large && points.length > maximumBars;
+  const showRangeBand = showBand && points.length > maximumBars;
   const millisecondsPerBar = points.length > 1
     ? (new Date(points.at(-1)!.DataOra).getTime() - new Date(points[0].DataOra).getTime()) / bucketCount
     : 0;
@@ -358,6 +358,7 @@ function ChartPanel({
   color,
   wide,
   onOpen,
+  showBand = false,
 }: {
   label: string;
   sublabel: string;
@@ -366,6 +367,7 @@ function ChartPanel({
   color?: string;
   wide?: boolean;
   onOpen?: () => void;
+  showBand?: boolean;
 }) {
   if (!points.length)
     return (
@@ -390,7 +392,7 @@ function ChartPanel({
         <strong>{label}</strong>
         <span>{sublabel}</span>
       </div>
-      <MiniBars points={points} field={field} color={color} />
+      <MiniBars points={points} field={field} color={color} showBand={showBand} />
       <div className="chart-axis">
         <span>{formatDateTime(points[0].DataOra)}</span>
         <span>
@@ -482,6 +484,7 @@ export default function Home() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [hoursWindow, setHoursWindow] = useState(24);
+  const [showRangeBand, setShowRangeBand] = useState(false);
   const [popup, setPopup] = useState<{
     label: string;
     field: keyof Point;
@@ -901,6 +904,7 @@ export default function Home() {
                 field={popup.field}
                 color={popup.color}
                 large
+                showBand={showRangeBand}
               />
             </div>
           </div>
@@ -1198,6 +1202,7 @@ export default function Home() {
               points={points}
               field="Putere"
               color="#bd861c"
+              showBand={showRangeBand}
               onOpen={() =>
                 setPopup({
                   label: "PUTERE / W",
@@ -1212,6 +1217,7 @@ export default function Home() {
               points={points}
               field="VitVant"
               color="#257b68"
+              showBand={showRangeBand}
               onOpen={() =>
                 setPopup({
                   label: "VÂNT / m/s",
@@ -1227,6 +1233,7 @@ export default function Home() {
             points={points}
             field="Energie"
             color="#167bb8"
+            showBand={showRangeBand}
             wide
             onOpen={() =>
               setPopup({
@@ -1360,6 +1367,10 @@ export default function Home() {
                 Închide
               </button>
             </div>
+            <label className="band-toggle">
+              <input type="checkbox" checked={showRangeBand} onChange={(event) => setShowRangeBand(event.target.checked)} />
+              Bandă min–max
+            </label>
             <h2>{popup.label}</h2>
             <p>
               {selectedTurbine.location} ·{" "}
