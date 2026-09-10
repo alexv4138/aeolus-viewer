@@ -123,6 +123,17 @@ function formatXlsxInteger(value: unknown) {
   return Number.isFinite(numeric) ? String(Math.round(numeric)) : "";
 }
 
+function smoothPath(values: number[], xFor: (index: number) => number, yFor: (value: number) => number) {
+  if (!values.length) return "";
+  const points = values.map((value, index) => ({ x: xFor(index), y: yFor(value) }));
+  return points.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x} ${point.y}`;
+    const previous = points[index - 1];
+    const distance = point.x - previous.x;
+    return `${path} C ${previous.x + distance * 0.45} ${previous.y}, ${point.x - distance * 0.45} ${point.y}, ${point.x} ${point.y}`;
+  }, "");
+}
+
 function MiniBars({ points, field, color = "#18201e" }: {
   points: Point[]; field: keyof Point; color?: string; large?: boolean;
 }) {
@@ -153,6 +164,7 @@ function MiniBars({ points, field, color = "#18201e" }: {
   const selected = active === null ? null : buckets[active];
   const ticks = [...new Set([0, Math.floor((buckets.length - 1) / 3), Math.floor(2 * (buckets.length - 1) / 3), buckets.length - 1])].filter(i => i >= 0);
   const compressed = points.length > maximumBars;
+  const useSpline = points.length > 50;
   const millisecondsPerBar = points.length > 1
     ? (new Date(points.at(-1)!.DataOra).getTime() - new Date(points[0].DataOra).getTime()) / bucketCount
     : 0;
@@ -178,6 +190,26 @@ function MiniBars({ points, field, color = "#18201e" }: {
           <line x1={left} x2={588} y1={top + height * (1 - ratio)} y2={top + height * (1 - ratio)} stroke="#dde4e1" />
           <text x={44} y={top + height * (1 - ratio) + 4} textAnchor="end" fill="#63706b" fontSize="12">{format(dataMin + range * ratio, axisDigits)}</text>
         </g>)}
+        {useSpline && <>
+          <path
+            d={`${smoothPath(buckets.map(bucket => bucket.max), i => left + i * step + step / 2, value => top + height - ((value - dataMin) / range) * height)} L ${left + (buckets.length - 1) * step + step / 2} ${top + height - ((buckets.at(-1)!.min - dataMin) / range) * height} ${[...buckets].reverse().map((bucket, reverseIndex) => {
+              const i = buckets.length - 1 - reverseIndex;
+              return `L ${left + i * step + step / 2} ${top + height - ((bucket.min - dataMin) / range) * height}`;
+            }).join(" ")} Z`}
+            fill={color}
+            opacity="0.12"
+            pointerEvents="none"
+          />
+          <path
+            d={smoothPath(buckets.map(bucket => (bucket.min + bucket.max) / 2), i => left + i * step + step / 2, value => top + height - ((value - dataMin) / range) * height)}
+            fill="none"
+            stroke={color}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pointerEvents="none"
+          />
+        </>}
         {buckets.map((bucket, i) => {
           const minHeight = Math.max(2, (bucket.min - dataMin) / range * height);
           const maxHeight = Math.max(minHeight, (bucket.max - dataMin) / range * height);
@@ -185,8 +217,9 @@ function MiniBars({ points, field, color = "#18201e" }: {
           return <g key={`${bucket.start.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
             <rect x={left + i * step} y={top} width={step} height={height} fill="transparent" />
             {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />}
-            {bucket.compressed && <rect x={left + i * step + step * 0.12} y={top + height - maxHeight} width={step * 0.76} height={maxHeight} fill={color} opacity="0.28" />}
-            <rect x={left + i * step + step * 0.12} y={top + height - minHeight} width={step * 0.76} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />
+            {!useSpline && bucket.compressed && <rect x={left + i * step + step * 0.12} y={top + height - maxHeight} width={step * 0.76} height={maxHeight} fill={color} opacity="0.28" />}
+            {!useSpline && <rect x={left + i * step + step * 0.12} y={top + height - minHeight} width={step * 0.76} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />}
+            {useSpline && <circle cx={left + i * step + step / 2} cy={top + height - (((bucket.min + bucket.max) / 2 - dataMin) / range) * height} r={active === i ? 4 : 2.5} fill={color} opacity={active === i ? 1 : 0.72} />}
             <title>{bucket.compressed ? `${formatDateTime(bucket.start.DataOra)} – ${formatDateTime(bucket.end.DataOra)}: min ${format(bucket.min)}, max ${format(bucket.max)}` : `${formatDateTime(bucket.start.DataOra)}: ${format(bucket.max)}`}</title>
           </g>;
         })}
@@ -198,7 +231,7 @@ function MiniBars({ points, field, color = "#18201e" }: {
           </text>;
         })}
       </svg>
-      <div className="chart-detail-hint">{intervalLabel}{compressed ? " · zona deschisă = maxim, zona închisă = minim" : ""} · deschide pentru toate citirile →</div>
+      <div className="chart-detail-hint">{useSpline ? "linie spline · banda discretă = minim–maxim" : intervalLabel}{compressed && !useSpline ? " · zona deschisă = maxim, zona închisă = minim" : ""} · deschide pentru toate citirile →</div>
     </div>
   );
 }
