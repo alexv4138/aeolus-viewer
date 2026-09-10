@@ -228,55 +228,6 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
   );
 }
 
-function PopupBars({
-  points,
-  field,
-  color = "#18201e",
-}: {
-  points: Point[];
-  field: keyof Point;
-  color?: string;
-}) {
-  const buckets = buildPopupBuckets(points, field);
-  const minimum = field === "Energie" ? Math.min(...buckets.map((bucket) => bucket.min)) : 0;
-  const maximum = Math.max(...buckets.map((bucket) => bucket.max));
-  const range = Math.max(0.000001, maximum - minimum);
-  return (
-    <div className="popup-bars">
-      {buckets.map((bucket, index) => {
-        const previousBucket = buckets[index - 1];
-        const startsDay =
-          index === 0 ||
-          new Date(bucket.start.DataOra).toDateString() !==
-            new Date(previousBucket.start.DataOra).toDateString();
-        const period = bucket.start.DataOra === bucket.end.DataOra
-          ? formatDateTime(bucket.start.DataOra)
-          : `${formatDateTime(bucket.start.DataOra)}–${formatDateTime(bucket.end.DataOra)}`;
-        return (
-          <div
-            className={`popup-bar-row ${startsDay ? "day-start" : ""}`}
-            key={`${bucket.start.DataOra}-${index}`}
-          >
-            <span className="popup-bar-label">
-              <b>{period}</b>
-              <strong>{bucket.min === bucket.max ? format(bucket.max) : `${format(bucket.min)}–${format(bucket.max)}`}</strong>
-            </span>
-            <span className="popup-bar-track">
-              <i
-                style={{
-                  width: `${Math.max(1, ((bucket.max - minimum) / range) * 100)}%`,
-                  maxWidth: "100%",
-                  backgroundColor: color,
-                }}
-              />
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function buildPopupBuckets(points: Point[], field: keyof Point) {
   const bucketSize = Math.max(1, Math.ceil(points.length / 160));
   return Array.from(
@@ -484,7 +435,6 @@ export default function Home() {
   const [toDate, setToDate] = useState("");
   const [hoursWindow, setHoursWindow] = useState(24);
   const [showRangeBand, setShowRangeBand] = useState(false);
-  const [popupHorizontal, setPopupHorizontal] = useState(false);
   const [popup, setPopup] = useState<{
     label: string;
     field: keyof Point;
@@ -881,44 +831,6 @@ export default function Home() {
         <footer className="login-footer">
           © 2026 Urban Lentz 2 · Sistem de monitorizare turbine
         </footer>
-        {popup && (
-          <div
-            className="chart-modal"
-            role="dialog"
-            onClick={() => setPopup(null)}
-          >
-            <div
-              className="chart-modal-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="chart-modal-close"
-                onClick={() => setPopup(null)}
-              >
-                Închide
-              </button>
-              <h2>{popup.label}</h2>
-              <p>
-                {selectedTurbine.location} ·{" "}
-                {points.length
-                  ? `${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)}`
-                  : "Nu există citiri"}
-              </p>
-              <div className="chart-modal-meta">
-                <span>{points.length} citiri</span>
-                <span>Minim: {format(popupMin)}</span>
-                <span>Maxim: {format(popupMax)}</span>
-              </div>
-              <MiniBars
-                points={points}
-                field={popup.field}
-                color={popup.color}
-                large
-                showBand={showRangeBand}
-              />
-            </div>
-          </div>
-        )}
       </main>
     );
   return (
@@ -1370,38 +1282,33 @@ export default function Home() {
             className="chart-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="chart-modal-actions">
-              <h2>{popup.label}</h2>
-              <button className="action-button action-button--export" onClick={() => exportChartPdf()}>
-                <Download size={15} /> Exportă grafic PDF · A4
-              </button>
-              <button className="action-button action-button--export" onClick={exportXlsx}>
-                Exportă Excel
-              </button>
-              <button className="action-button action-button--secondary" onClick={() => setPopupHorizontal((value) => !value)}>
-                {popupHorizontal ? "Grafic vertical" : "Grafic orizontal"}
-              </button>
-              <button
-                className="action-button action-button--secondary"
-                onClick={() => setPopup(null)}
-              >
-                Închide
-              </button>
+            <div className="chart-title">
+              <strong>{popup.label}</strong>
+              <div className="chart-actions" onClick={(event) => event.stopPropagation()}>
+                <button type="button" className="action-button action-button--export" onClick={() => exportChartPdf()}>
+                  <Download size={13} /> Exportă grafic PDF · A4
+                </button>
+                <button type="button" className="action-button action-button--export" onClick={exportXlsx}>
+                  Exportă Excel
+                </button>
+                <button type="button" className="action-button action-button--secondary" onClick={() => setPopup(null)}>
+                  Închide
+                </button>
+              </div>
             </div>
-            <p>
-              {selectedTurbine.location} ·{" "}
+            <div className="chart-axis popup-chart-axis">
+              <span>{selectedTurbine.location}</span>
+              <span>{points.length} citiri · minim {format(popupMin)} · maxim {format(popupMax)}</span>
+              <span>
               {points.length
                 ? `${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)}`
                 : "Nu există citiri"}
-            </p>
-            <div className="chart-modal-meta">
-              <span>{points.length} citiri</span>
-              <span>Minim: {format(popupMin)}</span>
-              <span>Maxim: {format(popupMax)}</span>
+              </span>
             </div>
-            <div className="popup-range-toolbar">
-              <label className="control-box">
-                De la
+            <div className="range-toolbar popup-range-toolbar">
+              <div className="range-inputs">
+                <label className="control-box">
+                  <span>De la</span>
                 <input
                   type="date"
                   min={availableFrom}
@@ -1409,9 +1316,9 @@ export default function Home() {
                   value={fromDate}
                   onChange={(event) => setFromDate(event.target.value)}
                 />
-              </label>
-              <label className="control-box">
-                Până la
+                </label>
+                <label className="control-box">
+                  <span>Până la</span>
                 <input
                   type="date"
                   min={fromDate || availableFrom}
@@ -1419,11 +1326,17 @@ export default function Home() {
                   value={toDate}
                   onChange={(event) => setToDate(event.target.value)}
                 />
-              </label>
-              <label className="popup-hours" htmlFor="popup-hours-window">
-                <span>
-                  Ultimele <strong>{hoursWindow} h</strong>
+                </label>
+              </div>
+              <div className="control-box hours-window">
+                <span className="mouse-icon" aria-hidden="true">
+                  <Mouse />
+                  <i />
                 </span>
+                <label htmlFor="popup-hours-window">
+                  <span>ULTIMELE</span>
+                  <strong>{hoursWindow} h</strong>
+                </label>
                 <input
                   id="popup-hours-window"
                   type="range"
@@ -1436,13 +1349,24 @@ export default function Home() {
                     setToDate("");
                   }}
                 />
+              </div>
+              <label className="control-box band-toggle">
+                <input type="checkbox" checked={showRangeBand} onChange={(event) => setShowRangeBand(event.target.checked)} />
+                Bandă min–max
               </label>
+              <button
+                type="button"
+                className="action-button action-button--secondary range-reset"
+                disabled={!fromDate && !toDate}
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+              >
+                Resetează
+              </button>
             </div>
-            {popupHorizontal ? (
-              <MiniBars points={points} field={popup.field} color={popup.color} large showBand={showRangeBand} />
-            ) : (
-              <PopupBars points={points} field={popup.field} color={popup.color} />
-            )}
+            <MiniBars points={points} field={popup.field} color={popup.color} large showBand={showRangeBand} />
           </div>
         </div>
       )}

@@ -1077,25 +1077,10 @@ footer span {
   max-height: 90vh;
   overflow: auto;
   background: #fff;
-  padding: 24px 28px 28px;
+  padding: 14px 18px 20px;
   box-shadow: 0 18px 60px rgba(15, 30, 35, 0.22);
   border: 1px solid rgba(15, 30, 35, 0.12);
   min-height: 0;
-}
-.chart-modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.chart-modal-actions h2 {
-  margin: 0 auto 0 0;
-  font-size: 20px;
-}
-.chart-modal-close {
-  padding: 8px 14px;
-  background: #fff;
-  border: 1px solid var(--line);
 }
 .chart-pdf-export {
   display: inline-flex;
@@ -1107,13 +1092,6 @@ footer span {
   border: 1px solid #257b68;
 }
 .chart-xlsx-export { background: #257b68; }
-.chart-modal h2 {
-  margin: 0;
-}
-.chart-modal p {
-  color: var(--muted);
-  margin: 8px 0 14px;
-}
 .range-toolbar {
   flex-wrap: wrap;
   align-items: center;
@@ -1217,103 +1195,6 @@ footer span {
   color: var(--muted);
   font-size: 12px;
 }
-.chart-modal-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 18px 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-.chart-modal-meta span {
-  border: 1px solid var(--line);
-  padding: 6px 9px;
-  background: #fff;
-}
-.popup-range-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: end;
-  margin: 18px 0;
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 11px;
-}
-.popup-range-toolbar label {
-  display: grid;
-  gap: 5px;
-}
-.popup-range-toolbar input[type="date"] {
-  min-width: 145px;
-  border: 1px solid var(--line);
-  padding: 6px 8px;
-  background: #fff;
-  color: var(--ink);
-}
-.popup-hours {
-  display: grid;
-  gap: 5px;
-  min-width: 180px;
-}
-.popup-hours strong {
-  color: var(--ink);
-}
-.popup-hours input {
-  accent-color: #257b68;
-}
-.popup-bars {
-  display: grid;
-  gap: 2px;
-  padding: 8px 0 28px;
-}
-.popup-bar-row {
-  display: grid;
-  grid-template-columns: minmax(265px, 340px) minmax(80px, 1fr);
-  gap: 9px;
-  align-items: center;
-  min-height: 17px;
-}
-.popup-bar-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #58645f;
-  font-size: 10px;
-  white-space: nowrap;
-}
-.popup-bar-label b {
-  font-weight: 500;
-}
-.popup-bar-label strong {
-  color: var(--ink);
-}
-.popup-bar-track {
-  display: block;
-  height: 10px;
-  overflow: hidden;
-  border-left: 1px solid rgba(118, 129, 125, 0.5);
-  background-image: linear-gradient(90deg, rgba(118, 129, 125, 0.14) 1px, transparent 1px);
-  background-size: 25% 100%;
-}
-.popup-bar-track i {
-  display: block;
-  height: 100%;
-  opacity: 0.85;
-}
-.popup-bar-row.day-start .popup-bar-label b {
-  color: #257b68;
-  font-weight: 700;
-}
-.popup-bar-row.day-start .popup-bar-track {
-  border-left: 3px solid #257b68;
-}
-.popup-bar-row:hover .popup-bar-track i {
-  opacity: 1;
-  filter: brightness(0.78);
-}
 @media (max-width: 720px) {
   .range-inputs {
     width: 100%;
@@ -1334,33 +1215,6 @@ footer span {
   .hours-window input[type="range"] {
     flex: 1;
     width: auto;
-  }
-  .popup-range-toolbar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .popup-range-toolbar label {
-    min-width: 0;
-  }
-  .popup-range-toolbar .popup-hours {
-    grid-column: 1 / -1;
-  }
-  .popup-range-toolbar input[type="date"] {
-    min-width: 0;
-    width: 100%;
-  }
-  .popup-bar-row {
-    grid-template-columns: minmax(184px, 62%) minmax(42px, 1fr);
-    gap: 5px;
-  }
-  .popup-bar-label {
-    gap: 5px;
-    font-size: 8.5px;
-    white-space: nowrap;
-  }
-  .popup-bar-label b {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .chart-axis {
     gap: 8px;
@@ -1555,13 +1409,13 @@ footer span {
 .range-inputs .control-box input[type="date"] { min-width: 0; width: 100%; }
 .hours-window.control-box { min-width: 176px; }
 .band-toggle.control-box { color: var(--ink); font-size: 12px; white-space: nowrap; }
-.popup-range-toolbar .control-box { min-height: 34px; }
-.popup-range-toolbar .control-box input[type="date"] { min-width: 145px; }
 .range-toolbar > .action-button { min-height: 34px; }
-.chart-modal-actions .action-button { min-height: 36px; }
+.chart-modal .chart-title { margin-bottom: 4px; }
+.chart-modal .chart-axis { margin: 0 0 10px; }
+.chart-modal .range-toolbar { margin-top: 10px; }
+.chart-modal .telemetry-chart { margin-top: 8px; }
 @media (max-width: 720px) {
   .chart-actions { width: 100%; margin-left: 0; }
   .chart-actions .action-button { flex: 1; }
   .range-inputs .control-box { min-width: 0; flex: 1; }
-  .popup-range-toolbar .control-box input[type="date"] { min-width: 0; width: 100%; }
 }
