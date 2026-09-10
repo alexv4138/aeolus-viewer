@@ -912,7 +912,6 @@ export default function Home() {
         )}
       </main>
     );
-  const title = current.master ? "Prezentare flotă" : selectedTurbine.id;
   return (
     <main className="app-shell">
       <div className="turbine-backdrop" aria-hidden="true">
@@ -923,7 +922,6 @@ export default function Home() {
       <header className="topbar">
         <div>
           <p className="eyebrow">URBAN LENTZ 2 / OPERAȚIUNI</p>
-          <h1>{title}</h1>
         </div>
         <div className="header-meta">
           <span>
@@ -1362,8 +1360,12 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="chart-modal-actions">
+              <h2>{popup.label}</h2>
               <button className="chart-pdf-export" onClick={exportChartPdf}>
                 <Download size={15} /> Exportă grafic PDF · A4
+              </button>
+              <button className="chart-pdf-export chart-xlsx-export" onClick={exportXlsx}>
+                Exportă Excel
               </button>
               <button
                 className="chart-modal-close"
@@ -1372,7 +1374,6 @@ export default function Home() {
                 Închide
               </button>
             </div>
-            <h2>{popup.label}</h2>
             <p>
               {selectedTurbine.location} ·{" "}
               {points.length
