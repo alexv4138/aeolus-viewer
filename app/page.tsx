@@ -223,7 +223,7 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
             {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />}
             {!useSpline && showRangeBand && bucket.compressed && <rect x={left + i * step + step * 0.12} y={top + height - maxHeight} width={step * 0.76} height={maxHeight} fill={color} opacity="0.28" />}
             {!useSpline && <rect x={left + i * step + step * 0.12} y={top + height - minHeight} width={step * 0.76} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />}
-            {useSpline && <circle cx={left + i * step + step / 2} cy={top + height - (((bucket.min + bucket.max) / 2 - dataMin) / range) * height} r={active === i ? 4 : 2.5} fill={color} opacity={active === i ? 1 : 0.72} />}
+            {useSpline && <circle cx={left + i * step + step / 2} cy={top + height - (((bucket.min + bucket.max) / 2 - dataMin) / range) * height} r={active === i ? 2.5 : 1.25} fill={color} opacity={active === i ? 1 : 0.72} />}
             <title>{bucket.compressed ? `${formatDateTime(bucket.start.DataOra)} – ${formatDateTime(bucket.end.DataOra)}: min ${format(bucket.min)}, max ${format(bucket.max)}` : `${formatDateTime(bucket.start.DataOra)}: ${format(bucket.max)}`}</title>
           </g>;
         })}
