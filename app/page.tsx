@@ -1095,25 +1095,6 @@ export default function Home() {
                   : "Nu există citiri"}
               </span>
             </div>
-            <button
-              type="button"
-              className="action-button action-button--primary"
-              onClick={exportXlsx}
-              disabled={!points.length}
-            >
-              Exportă XLSX pentru Excel
-            </button>
-            <button
-              type="button"
-              className="action-button action-button--secondary range-reset"
-              disabled={!fromDate && !toDate}
-              onClick={() => {
-                setFromDate("");
-                setToDate("");
-              }}
-            >
-              Resetează
-            </button>
           </div>
           <div className="chart-grid">
             <ChartPanel
