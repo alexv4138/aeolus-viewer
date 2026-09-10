@@ -220,9 +220,9 @@ function MiniBars({ points, field, color = "#18201e", large = false, showBand = 
           const dayStart = i > 0 && new Date(bucket.start.DataOra).toDateString() !== new Date(buckets[i - 1].start.DataOra).toDateString();
           return <g key={`${bucket.start.DataOra}-${i}`} onMouseEnter={() => setActive(i)} onClick={event => { event.stopPropagation(); setActive(i); }}>
             <rect x={left + i * step} y={top} width={step} height={height} fill="transparent" />
-            {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeOpacity="0.3" strokeDasharray="3 3" />}
-            {!useSpline && showRangeBand && bucket.compressed && <rect x={left + i * step + step * 0.12} y={top + height - maxHeight} width={step * 0.76} height={maxHeight} fill={color} opacity="0.28" />}
-            {!useSpline && <rect x={left + i * step + step * 0.12} y={top + height - minHeight} width={step * 0.76} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />}
+            {dayStart && <line x1={left + i * step} x2={left + i * step} y1={top} y2={top + height} stroke={color} strokeWidth="1.5" strokeOpacity="0.5" strokeDasharray="3 3" />}
+            {!useSpline && showRangeBand && bucket.compressed && <rect x={left + i * step + step * 0.08} y={top + height - maxHeight} width={step * 0.84} height={maxHeight} fill={color} opacity="0.28" />}
+            {!useSpline && <rect x={left + i * step + step * 0.08} y={top + height - minHeight} width={step * 0.84} height={minHeight} fill={color} opacity={active === i ? 1 : 0.78} />}
             {useSpline && <circle cx={left + i * step + step / 2} cy={top + height - (((bucket.min + bucket.max) / 2 - dataMin) / range) * height} r={active === i ? 2.5 : 1.25} fill={color} opacity={active === i ? 1 : 0.72} />}
             <title>{bucket.compressed ? `${formatDateTime(bucket.start.DataOra)} – ${formatDateTime(bucket.end.DataOra)}: min ${format(bucket.min)}, max ${format(bucket.max)}` : `${formatDateTime(bucket.start.DataOra)}: ${format(bucket.max)}`}</title>
           </g>;
@@ -359,6 +359,7 @@ function ChartPanel({
   color,
   wide,
   onOpen,
+  onExport,
   showBand = false,
 }: {
   label: string;
@@ -368,6 +369,7 @@ function ChartPanel({
   color?: string;
   wide?: boolean;
   onOpen?: () => void;
+  onExport?: () => void;
   showBand?: boolean;
 }) {
   if (!points.length)
@@ -384,14 +386,17 @@ function ChartPanel({
   const min = Math.min(...values);
   const max = Math.max(...values);
   return (
-    <button
-      type="button"
+    <div
       className={`chart-panel ${wide ? "wide" : ""}`}
       onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onOpen?.(); }}
     >
       <div className="chart-title">
         <strong>{label}</strong>
         <span>{sublabel}</span>
+        {onExport && <button type="button" className="chart-inline-export" onClick={(event) => { event.stopPropagation(); onExport(); }}><Download size={13} /> PDF</button>}
       </div>
       <MiniBars points={points} field={field} color={color} showBand={showBand} />
       <div className="chart-axis">
@@ -401,7 +406,7 @@ function ChartPanel({
         </span>
         <span>{formatDateTime(points.at(-1)!.DataOra)}</span>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -486,6 +491,7 @@ export default function Home() {
   const [toDate, setToDate] = useState("");
   const [hoursWindow, setHoursWindow] = useState(24);
   const [showRangeBand, setShowRangeBand] = useState(false);
+  const [popupHorizontal, setPopupHorizontal] = useState(false);
   const [popup, setPopup] = useState<{
     label: string;
     field: keyof Point;
@@ -656,12 +662,12 @@ export default function Home() {
       { cellStyles: true },
     );
   }
-  async function exportChartPdf() {
-    if (!popup || !points.length) return;
+  async function exportChartPdf(target = popup) {
+    if (!target || !points.length) return;
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const buckets = buildPopupBuckets(points, popup.field);
-    const minimum = popup.field === "Energie"
+    const buckets = buildPopupBuckets(points, target.field);
+    const minimum = target.field === "Energie"
       ? Math.min(...buckets.map((bucket) => bucket.min))
       : 0;
     const maximum = Math.max(...buckets.map((bucket) => bucket.max));
@@ -674,7 +680,7 @@ export default function Home() {
     const trackWidth = pageWidth - margin - trackX;
     const rowHeight = 6.15;
     const plain = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const hex = (popup.color ?? "#18201e").replace("#", "");
+    const hex = (target.color ?? "#18201e").replace("#", "");
     const rgb = hex.length === 6
       ? [Number.parseInt(hex.slice(0, 2), 16), Number.parseInt(hex.slice(2, 4), 16), Number.parseInt(hex.slice(4, 6), 16)] as const
       : [24, 32, 30] as const;
@@ -684,7 +690,7 @@ export default function Home() {
       doc.setTextColor(20, 27, 25);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(13);
-      doc.text(plain(popup.label), margin, 13);
+      doc.text(plain(target.label), margin, 13);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(86, 100, 95);
@@ -732,8 +738,10 @@ export default function Home() {
         { align: "center" },
       );
     }
-    doc.save(`grafic-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${String(popup.field).toLowerCase()}.pdf`);
+    doc.save(`grafic-${selectedTurbine.id.toLowerCase().replaceAll(" ", "-")}-${String(target.field).toLowerCase()}.pdf`);
   }
+  const exportMainPdf = (field: keyof Point, label: string, color: string) =>
+    exportChartPdf({ field, label, color });
   const selectedAlerts: Alert[] = latest.Alarma
     ? [
         {
@@ -1221,6 +1229,7 @@ export default function Home() {
                   color: "#bd861c",
                 })
               }
+              onExport={() => exportMainPdf("Putere", "PUTERE / W", "#bd861c")}
             />
             <ChartPanel
               label="VÂNT / m/s"
@@ -1236,6 +1245,7 @@ export default function Home() {
                   color: "#257b68",
                 })
               }
+              onExport={() => exportMainPdf("VitVant", "VÂNT / m/s", "#257b68")}
             />
           </div>
           <ChartPanel
@@ -1253,6 +1263,7 @@ export default function Home() {
                 color: "#167bb8",
               })
             }
+            onExport={() => exportMainPdf("Energie", "ENERGIE / kWh", "#167bb8")}
           />
         </section>
         <aside className="alarm-column">
@@ -1369,11 +1380,14 @@ export default function Home() {
           >
             <div className="chart-modal-actions">
               <h2>{popup.label}</h2>
-              <button className="chart-pdf-export" onClick={exportChartPdf}>
+              <button className="chart-pdf-export" onClick={() => exportChartPdf()}>
                 <Download size={15} /> Exportă grafic PDF · A4
               </button>
               <button className="chart-pdf-export chart-xlsx-export" onClick={exportXlsx}>
                 Exportă Excel
+              </button>
+              <button className="chart-modal-close" onClick={() => setPopupHorizontal((value) => !value)}>
+                {popupHorizontal ? "Grafic vertical" : "Grafic orizontal"}
               </button>
               <button
                 className="chart-modal-close"
@@ -1432,11 +1446,11 @@ export default function Home() {
                 />
               </label>
             </div>
-            <PopupBars
-              points={points}
-              field={popup.field}
-              color={popup.color}
-            />
+            {popupHorizontal ? (
+              <MiniBars points={points} field={popup.field} color={popup.color} large showBand={showRangeBand} />
+            ) : (
+              <PopupBars points={points} field={popup.field} color={popup.color} />
+            )}
           </div>
         </div>
       )}

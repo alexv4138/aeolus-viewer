@@ -540,6 +540,18 @@ select {
 .chart-title span {
   color: #76817d;
 }
+.chart-inline-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 4px 7px;
+  color: #257b68;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-size: 11px;
+}
+.chart-panel[role="button"] { cursor: pointer; }
 .mini-bars {
   height: 166px;
   display: flex;
