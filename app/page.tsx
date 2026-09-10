@@ -1163,6 +1163,10 @@ export default function Home() {
                 }}
               />
             </div>
+            <label className="band-toggle">
+              <input type="checkbox" checked={showRangeBand} onChange={(event) => setShowRangeBand(event.target.checked)} />
+              Bandă min–max
+            </label>
             <div className="range-summary">
               <strong>Interval disponibil</strong>
               <span>
@@ -1367,10 +1371,6 @@ export default function Home() {
                 Închide
               </button>
             </div>
-            <label className="band-toggle">
-              <input type="checkbox" checked={showRangeBand} onChange={(event) => setShowRangeBand(event.target.checked)} />
-              Bandă min–max
-            </label>
             <h2>{popup.label}</h2>
             <p>
               {selectedTurbine.location} ·{" "}

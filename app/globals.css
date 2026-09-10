@@ -1102,6 +1102,18 @@ footer span {
   padding: 0;
   accent-color: #257b68;
 }
+.band-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.band-toggle input { accent-color: #257b68; }
 .range-summary {
   display: grid;
   gap: 3px;
