@@ -56,7 +56,7 @@ export function formatDate(value: string | number | Date): string {
     if (isNaN(d.getTime())) return "—";
     return d.toLocaleDateString("ro-RO", {
       day: "2-digit",
-      month: "short",
+      month: "2-digit",
       year: "numeric",
     });
   } catch {

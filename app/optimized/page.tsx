@@ -296,7 +296,7 @@ export default function OptimizedDashboardPage() {
   // Alarme sintetizate conform ISA-18.2
   const alerts: AlertItem[] = useMemo(() => {
     const list: AlertItem[] = [];
-    const timeStr = formatTime(latest.DataOra);
+    const timeStr = formatDateTime(latest.DataOra);
 
     if (Number(latest.Turatie) > 120) {
       list.push({
@@ -331,6 +331,24 @@ export default function OptimizedDashboardPage() {
         severity: "warning",
         parameter: "Senzor Alarma Activ",
         text: "Semnal general de alarmă recepționat de la controllerul turbinei.",
+      });
+    }
+
+    if (Number(latest.Putere) === 0 && Number(latest.Turatie) > 0) {
+      list.push({
+        time: timeStr,
+        severity: "warning",
+        parameter: "Producție indisponibilă",
+        text: "Rotorul este în mișcare, dar puterea raportată este zero. Verificați generatorul și convertorul.",
+      });
+    }
+
+    if (Number(latest.Voltaj) > 0 && Number(latest.Voltaj) < 24) {
+      list.push({
+        time: timeStr,
+        severity: "critical",
+        parameter: "Tensiune scăzută",
+        text: `Tensiunea raportată este ${formatDecimal(latest.Voltaj, 1)} V. Se recomandă verificarea alimentării și a convertorului.`,
       });
     }
 
@@ -666,7 +684,7 @@ export default function OptimizedDashboardPage() {
 
             {/* Ceas EET */}
             <span className="font-mono text-xs text-[#53605b] hidden sm:inline">
-              {lastUpdate.toLocaleDateString("ro-RO")} {formatTime(lastUpdate)} EET
+              {formatDateTime(lastUpdate)} EET
             </span>
 
             {/* Buton Deconectare */}
@@ -795,7 +813,7 @@ export default function OptimizedDashboardPage() {
                   >
                     <p className="m-0 text-[#121a18]">{n.body}</p>
                     <span className="text-[10px] text-[#7a8682] mt-1 font-mono">
-                      {n.authorName} · {new Date(n.createdAt).toLocaleString("ro-RO")}
+                      {n.authorName} · {formatDateTime(n.createdAt)}
                     </span>
                   </article>
                 ))

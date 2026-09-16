@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
-import { formatDateTime, formatDecimal, formatInt, formatVibration } from "./formatters";
+import { formatDate, formatDateTime, formatDecimal, formatInt, formatTime, formatVibration } from "./formatters";
 
 type Point = WorkbookTelemetry;
 
@@ -333,8 +333,6 @@ export function TelemetrySvgPlot({
               : pos === tickIndices.length - 1
                 ? "end"
                 : "middle";
-          const dateObj = new Date(pt.DataOra);
-
           return (
             <text
               key={idx}
@@ -346,16 +344,10 @@ export function TelemetrySvgPlot({
               fontFamily="var(--font-geist-mono), monospace"
             >
               <tspan x={xPos}>
-                {dateObj.toLocaleDateString("ro-RO", {
-                  day: "2-digit",
-                  month: "short",
-                })}
+                {formatDate(pt.DataOra)}
               </tspan>
               <tspan x={xPos} dy="14">
-                {dateObj.toLocaleTimeString("ro-RO", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatTime(pt.DataOra)}
               </tspan>
             </text>
           );
