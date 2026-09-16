@@ -6,9 +6,16 @@ import {
   AlertTriangle,
   Bell,
   CheckCircle2,
+  CloudLightning,
+  Droplets,
+  Flame,
   Info,
+  Mountain,
+  Bird,
   ShieldAlert,
   ShieldCheck,
+  ThermometerSun,
+  Zap,
 } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import { formatInt, formatVibration } from "./formatters";
@@ -192,6 +199,38 @@ export function AlarmColumn({ latest, alerts }: AlarmColumnProps) {
             })
           )}
         </div>
+      </div>
+
+      {/* Condiții externe și evenimente de protecție */}
+      <div className="mt-4 pt-3 border-t border-[#edf0ee]">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-bold text-[#65716d] uppercase tracking-wider">
+            Monitorizare evenimente
+          </span>
+          <span className="text-[10px] text-[#8e9c98]">senzori externi</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+          {[
+            { icon: CloudLightning, label: "Furtună", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+            { icon: Droplets, label: "Grindină", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+            { icon: Mountain, label: "Seism", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+            { icon: Bird, label: "Impact pasăre", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+            { icon: ThermometerSun, label: "Căldură extremă", value: "Monitorizat", tone: "text-[#9b5811] bg-[#fdf6ec]" },
+            { icon: Zap, label: "Supracurent", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+            { icon: Flame, label: "Incendiu", value: "Fără alertă", tone: "text-[#53605b] bg-[#f8faf9]" },
+          ].map(({ icon: Icon, label, value, tone }) => (
+            <div key={label} className={`flex items-center gap-1.5 px-2 py-2 ${tone}`}>
+              <Icon size={13} className="shrink-0" />
+              <span className="min-w-0">
+                <strong className="block font-semibold text-[#53605b] truncate">{label}</strong>
+                <span className="block text-[9px] opacity-80">{value}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[9px] text-[#8e9c98] mt-2 mb-0">
+          Evenimentele confirmate apar automat în jurnal.
+        </p>
       </div>
     </div>
   );
