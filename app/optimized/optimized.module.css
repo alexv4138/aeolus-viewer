@@ -1,0 +1,466 @@
+/* Foaie de stiluri modulară pentru copia optimizată Urban Lentz 2 */
+
+.optRoot {
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #121a18;
+  background-color: #f7f9f8;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.optRoot * {
+  box-sizing: border-box;
+}
+
+/* Tabular numerals pentru telemetrie fără trepidații */
+.optRoot :global(.tabular-nums),
+.optRoot code,
+.optRoot pre {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fundal video subtil cu turbina verticală */
+.backdropVideo {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  width: min(44vw, 680px);
+  height: calc(100% - 48px);
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+
+.backdropVideo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: grayscale(1) contrast(0.95);
+}
+
+.contentContainer {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 16px clamp(16px, 3vw, 48px) 36px;
+}
+
+/* Antet superior */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #dce3df;
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #121a18;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #65716d;
+}
+
+/* Bară identitate utilizator cu protecție împotriva coliziunii (flex-wrap) */
+.identityBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 14px 0;
+  border-bottom: 1px solid #dce3df;
+  background-color: transparent;
+}
+
+.identityItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+}
+
+.identityLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a8682;
+}
+
+.identityValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #121a18;
+}
+
+.identitySub {
+  font-size: 11px;
+  color: #65716d;
+}
+
+/* Grila principală SCADA pe 3 coloane cu fallback responsiv */
+.operationsGrid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+@media (max-width: 1200px) {
+  .operationsGrid {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .operationsGrid > aside:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 860px) {
+  .operationsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panou grafic individual */
+.chartCard {
+  background-color: #ffffff;
+  border: 1px solid #dce3df;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chartCard:hover {
+  border-color: #b5c2bd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #121a18;
+}
+
+.chartSub {
+  font-size: 11px;
+  color: #7a8682;
+}
+
+/* Formulare notițe */
+.notesPanel {
+  background-color: #ffffff;
+  border: 1px solid #dce3df;
+  padding: 16px;
+  margin: 12px 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .notesPanel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Pagina de autentificare optimizată */
+.loginPage {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background-color: #f7f9f8;
+  padding: 12px;
+}
+
+.loginCard {
+  max-width: 1080px;
+  width: 100%;
+  margin: auto;
+  background-color: #ffffff;
+  border: 1px solid #dce3df;
+  display: grid;
+  grid-template-columns: 46% 54%;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 800px) {
+  .loginCard {
+    grid-template-columns: 1fr;
+  }
+  .loginVisual {
+    display: none;
+  }
+}
+
+.loginVisual {
+  position: relative;
+  background-color: #fafbfb;
+  border-right: 1px solid #dce3df;
+  min-height: 420px;
+}
+
+.loginVisual video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Mod SCADA Întunecat (ISO 11064 pentru ergonomia centrelor de control) */
+.scadaDark {
+  background-color: #0d1214;
+  color: #d8e3e0;
+}
+
+.scadaDark .backdropVideo {
+  opacity: 0.12;
+  mix-blend-mode: screen;
+}
+
+.scadaDark .backdropVideo video {
+  filter: grayscale(1) invert(0.85) contrast(1.15);
+}
+
+.scadaDark .topbar,
+.scadaDark .identityBar,
+.scadaDark footer {
+  border-color: #233136;
+}
+
+.scadaDark .brandLogo,
+.scadaDark .identityValue {
+  color: #e5f0ed;
+}
+
+.scadaDark .eyebrow,
+.scadaDark .identityLabel {
+  color: #798f89;
+}
+
+.scadaDark .identitySub {
+  color: #9ab0aa;
+}
+
+.scadaDark .chartCard,
+.scadaDark .notesPanel,
+.scadaDark :global(.bg-white) {
+  background-color: #141d20 !important;
+  border-color: #233136 !important;
+  color: #d8e3e0 !important;
+}
+
+.scadaDark .chartCard:hover {
+  border-color: #3b5056 !important;
+}
+
+.scadaDark .chartTitle {
+  color: #e5f0ed;
+}
+
+.scadaDark :global(.text-\[\#121a18\]) {
+  color: #e5f0ed !important;
+}
+
+.scadaDark :global(.text-\[\#65716d\]),
+.scadaDark :global(.text-\[\#53605b\]) {
+  color: #9ab0aa !important;
+}
+
+.scadaDark :global(.text-\[\#7a8682\]),
+.scadaDark :global(.text-\[\#8e9c98\]) {
+  color: #728782 !important;
+}
+
+.scadaDark :global(.border-\[\#dce3df\]),
+.scadaDark :global(.border-\[\#edf0ee\]),
+.scadaDark :global(.border-\[\#cfd7d3\]) {
+  border-color: #233136 !important;
+}
+
+.scadaDark :global(.bg-\[\#f7f9f8\]),
+.scadaDark :global(.bg-\[\#f8faf9\]),
+.scadaDark :global(.bg-\[\#fcfdfe\]),
+.scadaDark :global(.bg-\[\#fafbfb\]),
+.scadaDark :global(.bg-\[\#f4f7f9\]),
+.scadaDark :global(.bg-\[\#f0f4f2\]) {
+  background-color: #162022 !important;
+}
+
+.scadaDark :global(.bg-\[\#f5faf8\]) {
+  background-color: #152722 !important;
+}
+
+.scadaDark :global(.bg-\[\#fdf6ec\]) {
+  background-color: #282115 !important;
+  border-color: #483918 !important;
+}
+
+.scadaDark :global(.bg-\[\#fdeeee\]) {
+  background-color: #2c1816 !important;
+  border-color: #4a221f !important;
+}
+
+.scadaDark :global(.bg-\[\#edf6f2\]) {
+  background-color: #122b23 !important;
+}
+
+.scadaDark :global(.border-\[\#cbe3d7\]),
+.scadaDark :global(.border-\[\#bfe2d1\]) {
+  border-color: #215243 !important;
+}
+
+.scadaDark input,
+.scadaDark select,
+.scadaDark textarea,
+.scadaDark :global(input),
+.scadaDark :global(select) {
+  background-color: #162022 !important;
+  border-color: #2a3c42 !important;
+  color: #e5f0ed !important;
+  color-scheme: dark;
+}
+
+.scadaDark :global(svg line[stroke="#edf0ee"]),
+.scadaDark :global(svg line[stroke="#cfd7d3"]) {
+  stroke: #233136 !important;
+}
+
+.scadaDark :global(svg text[fill="#7a8682"]),
+.scadaDark :global(svg text[fill="#65716d"]),
+.scadaDark :global(svg text[fill="#53605b"]) {
+  fill: #859c95 !important;
+}
+
+.scadaDark :global(svg text[fill="#121a18"]),
+.scadaDark :global(svg tspan[fill="#121a18"]) {
+  fill: #e5f0ed !important;
+}
+
+.scadaDark :global(svg text[fill="#a6b5af"]) {
+  fill: #4b635c !important;
+}
+
+.scadaDark :global(svg rect[fill="#ffffff"]) {
+  fill: #141d20 !important;
+}
+
+.scadaDark :global(svg circle[fill="#ffffff"]) {
+  fill: #141d20 !important;
+  stroke: #2a3c42 !important;
+}
+
+.scadaDark :global(.bg-\[\#edf3f0\]) {
+  background-color: #1a2528 !important;
+  color: #e5f0ed !important;
+  border-color: #2b3d43 !important;
+}
+
+.scadaDark :global(.bg-\[\#fcfdfe\]) {
+  background-color: #141d20 !important;
+}
+
+.scadaDark :global(rect[fill="#fff9ee"]) {
+  fill: #271f13 !important;
+  stroke: #5e441c !important;
+}
+
+.scadaDark :global(text[fill="#a06010"]) {
+  fill: #e8a838 !important;
+}
+
+.scadaDark :global(.text-\[\#a06010\]) {
+  color: #e8a838 !important;
+}
+
+.scadaDark :global(.bg-\[\#fff9ee\]) {
+  background-color: #271f13 !important;
+  border-color: #5e441c !important;
+}
+
+.scadaDark :global(.bg-\[\#fbfcfc\]) {
+  background-color: #12191b !important;
+  border-color: #233136 !important;
+}
+
+.scadaDark :global(.bg-\[\#edf0ee\]) {
+  background-color: #1b2629 !important;
+  color: #9ab0aa !important;
+  border-color: #2a3c42 !important;
+}
+
+.scadaDark :global(.bg-\[\#fff8eb\]) {
+  background-color: #271f13 !important;
+  color: #e8a838 !important;
+  border-color: #5e441c !important;
+}
+
+.scadaDark :global(.bg-\[\#e2e8e5\]) {
+  background-color: #233136 !important;
+}
+
+/* Stiluri Hartă România în mod SCADA Dark */
+.scadaDark :global(.map-canvas) {
+  background-color: #0d1514 !important;
+  border-color: #1a2825 !important;
+}
+
+.scadaDark :global(.map-county) {
+  fill: #14201d !important;
+  stroke: #1f332e !important;
+}
+
+.scadaDark :global(.map-county-host) {
+  fill: #1b2e28 !important;
+  stroke: #2f5247 !important;
+}
+
+.scadaDark :global(.map-county-active) {
+  fill: #1d3e33 !important;
+  stroke: #257b68 !important;
+  stroke-width: 1.6px !important;
+}
+
+.scadaDark :global(.map-sea) {
+  fill: #0c181f !important;
+}
+
