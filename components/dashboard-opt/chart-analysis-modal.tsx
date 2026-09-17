@@ -86,6 +86,63 @@ export function ChartAnalysisModal({
   const waitForPaint = () =>
     new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
+  function drawPdfHeader(doc: jsPDF, title: string) {
+    const margin = 12;
+    doc.setTextColor(18, 26, 24);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text(`${label} · ${title}`, margin, 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(83, 96, 91);
+    doc.text(`${turbineName} · ${turbineLocation}`, margin, 18);
+    doc.text(`${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)} · ${points.length} citiri`, margin, 23);
+  }
+
+  function addVerticalViewToPdf(doc: jsPDF, addPage: boolean) {
+    const pageHeight = 297;
+    const firstRowY = 39;
+    const rowHeight = 5;
+    const rowsPerPage = Math.floor((pageHeight - firstRowY - 12) / rowHeight);
+    const range = stats.max - stats.min || 1;
+
+    for (let page = 0; page * rowsPerPage < points.length; page += 1) {
+      if (addPage || page > 0) doc.addPage();
+      drawPdfHeader(doc, viewLabels.vertical);
+      doc.setDrawColor(220, 227, 223);
+      doc.line(12, 31, 198, 31);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(101, 113, 109);
+      doc.text("DATA & ORA", 14, 35);
+      doc.text("VALOARE", 52, 35);
+      doc.text("BARA RELATIVĂ", 68, 35);
+
+      const slice = points.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+      slice.forEach((point, index) => {
+        const value = Number(point[field]) || 0;
+        const pct = stats.max > stats.min
+          ? Math.max(2, Math.min(100, ((value - stats.min) / range) * 100))
+          : 50;
+        const y = firstRowY + index * rowHeight;
+
+        doc.setFillColor(240, 244, 242);
+        doc.rect(68, y - 3.1, 130, 3.4, "F");
+        const rgb = color.replace("#", "").match(/.{2}/g)?.map((hex) => parseInt(hex, 16)) ?? [37, 123, 104];
+        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+        doc.rect(68, y - 3.1, Math.max(2, (130 * pct) / 100), 3.4, "F");
+
+        doc.setFont("courier", "normal");
+        doc.setFontSize(6.4);
+        doc.setTextColor(83, 96, 91);
+        doc.text(formatDateTime(point.DataOra), 14, y - 0.5);
+        doc.setFont("courier", "bold");
+        doc.setTextColor(18, 26, 24);
+        doc.text(formatVal(value), 64, y - 0.5, { align: "right" });
+      });
+    }
+  }
+
   async function addRenderedViewToPdf(doc: jsPDF, title: string, addPage: boolean) {
     const node = exportViewRef.current;
     if (!node) return;
@@ -105,15 +162,7 @@ export function ChartAnalysisModal({
 
     for (let offset = 0, page = 0; offset < imageHeight; offset += pageImageHeight, page += 1) {
       if (page > 0) doc.addPage();
-      doc.setTextColor(18, 26, 24);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      doc.text(`${label} · ${title}`, margin, 12);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(83, 96, 91);
-      doc.text(`${turbineName} · ${turbineLocation}`, margin, 18);
-      doc.text(`${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)} · ${points.length} citiri`, margin, 23);
+      drawPdfHeader(doc, title);
       doc.addImage(canvas.toDataURL("image/png"), "PNG", margin, 29 - offset, imageWidth, imageHeight);
     }
   }
@@ -123,7 +172,11 @@ export function ChartAnalysisModal({
     setIsExporting(true);
     try {
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      await addRenderedViewToPdf(doc, viewLabels[viewMode], false);
+      if (viewMode === "vertical") {
+        addVerticalViewToPdf(doc, false);
+      } else {
+        await addRenderedViewToPdf(doc, viewLabels[viewMode], false);
+      }
       doc.save(`${label.toLowerCase().replace(/[^a-z0-9]+/gi, "-")}-${viewMode}.pdf`);
     } finally {
       setIsExporting(false);
@@ -139,7 +192,11 @@ export function ChartAnalysisModal({
       for (const [index, mode] of (["horizontal", "vertical", "powerCurve"] as const).entries()) {
         setViewMode(mode);
         await waitForPaint();
-        await addRenderedViewToPdf(doc, viewLabels[mode], index > 0);
+        if (mode === "vertical") {
+          addVerticalViewToPdf(doc, index > 0);
+        } else {
+          await addRenderedViewToPdf(doc, viewLabels[mode], index > 0);
+        }
       }
       doc.save(`grafice-${turbineName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
     } finally {
