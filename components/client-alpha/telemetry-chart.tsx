@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Ref } from "react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import { formatDateTime, formatDecimal, formatInt } from "@/components/dashboard-opt/formatters";
 
@@ -24,6 +24,7 @@ type Props = {
   sharedHover?: number | null;
   onSharedHover?: (index: number | null) => void;
   onActivate?: () => void;
+  svgRef?: Ref<SVGSVGElement>;
 };
 
 const number = (value: unknown) => {
@@ -55,7 +56,7 @@ function bucketSamples(points: Point[], chart: ChartSpec, maxSamples = 120): Sam
   });
 }
 
-export function TelemetryChart({ points, chart, showRange = false, compact = false, sharedHover, onSharedHover, onActivate }: Props) {
+export function TelemetryChart({ points, chart, showRange = false, compact = false, sharedHover, onSharedHover, onActivate, svgRef }: Props) {
   const [ownHover, setOwnHover] = useState<number | null>(null);
   const samples = useMemo(() => bucketSamples(points, chart), [points, chart]);
   const hovered = sharedHover === undefined ? ownHover : sharedHover;
@@ -92,6 +93,7 @@ export function TelemetryChart({ points, chart, showRange = false, compact = fal
       <strong className="tabular-nums text-[#17201d]">{active ? valueLabel(active.value, chart) : `${valueLabel(min, chart)} – ${valueLabel(max, chart)}`}</strong>
     </div>
     <svg
+      ref={svgRef}
       viewBox={`0 0 600 ${height}`}
       className="block w-full touch-none"
       role={onActivate ? "button" : "img"}

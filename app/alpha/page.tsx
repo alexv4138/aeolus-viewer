@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronDown, Clock3, Download, FileSpreadsheet, LockKeyhole, MapPin, Wind } from "lucide-react";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx-js-style";
@@ -53,11 +53,12 @@ type ChartCardProps = {
   points: Point[];
   showRange: boolean;
   onOpen: (chart: ChartSpec) => void;
-  onExportPdf: (chart: ChartSpec) => void;
+  onExportPdf: (chart: ChartSpec, svg: SVGSVGElement | null) => void;
   onExportExcel: () => void;
 };
 
 function ChartCard({ chart, points, showRange, onOpen, onExportPdf, onExportExcel }: ChartCardProps) {
+  const chartSvgRef = useRef<SVGSVGElement>(null);
   return (
     <article className="min-w-0 border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -66,11 +67,11 @@ function ChartCard({ chart, points, showRange, onOpen, onExportPdf, onExportExce
           <p className="m-0 mt-1 text-xs text-slate-500">{points.length ? `${points.length} citiri în interval` : "Fără citiri în interval"}</p>
         </div>
         <div className="flex gap-1">
-          <button type="button" onClick={() => onExportPdf(chart)} className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"><Download size={13} /> PDF</button>
+          <button type="button" onClick={() => onExportPdf(chart, chartSvgRef.current)} className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"><Download size={13} /> PDF</button>
           <button type="button" onClick={onExportExcel} className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={13} /> Excel</button>
         </div>
       </div>
-      <TelemetryChart chart={chart} points={points} showRange={showRange} onActivate={() => onOpen(chart)} />
+      <TelemetryChart svgRef={chartSvgRef} chart={chart} points={points} showRange={showRange} onActivate={() => onOpen(chart)} />
     </article>
   );
 }
@@ -168,31 +169,33 @@ export default function AlphaClientDashboardPage() {
     XLSX.writeFile(book, `telemetrie-${turbine.name.replace(/\s+/g, "-").toLowerCase()}.xlsx`);
   };
 
-  const exportChartPdf = (chart: ChartSpec) => {
-    if (!turbine) return;
-    const values = selectedPoints.map((point) => numberValue(point[chart.field]));
-    const maximum = Math.max(...values, 1);
-    const pdf = new jsPDF({ unit: "mm", format: "a4" });
-    pdf.setFontSize(16);
-    pdf.text(`${chart.label} / ${chart.unit}`, 15, 16);
-    pdf.setFontSize(9);
-    pdf.text(turbine.location, 15, 23);
-    pdf.text(selectedPoints.length ? `${formatDateTime(selectedPoints[0].DataOra)} – ${formatDateTime(selectedPoints.at(-1)?.DataOra ?? "")}` : "Fără citiri", 15, 29);
-    const startX = 18; const baseline = 180; const width = 175; const height = 115;
-    pdf.setDrawColor(215, 225, 222); pdf.line(startX, baseline, startX + width, baseline);
-    values.forEach((value, index) => {
-      const x = startX + (index / Math.max(values.length - 1, 1)) * width;
-      const y = baseline - (value / maximum) * height;
-      pdf.setDrawColor(chart.color); pdf.setLineWidth(0.6);
-      if (index) {
-        const previous = values[index - 1];
-        const previousX = startX + ((index - 1) / Math.max(values.length - 1, 1)) * width;
-        const previousY = baseline - (previous / maximum) * height;
-        pdf.line(previousX, previousY, x, y);
-      }
-    });
-    pdf.setFontSize(8); pdf.setTextColor(80, 94, 90);
-    pdf.text(`Minim: ${Math.min(...values).toFixed(chart.digits ?? 0)} · Maxim: ${Math.max(...values).toFixed(chart.digits ?? 0)} · ${values.length} citiri`, 15, 195);
+  const exportChartPdf = async (chart: ChartSpec, svg: SVGSVGElement | null) => {
+    if (!turbine || !svg) return;
+
+    const copy = svg.cloneNode(true) as SVGSVGElement;
+    copy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    copy.setAttribute("width", "1800");
+    copy.setAttribute("height", "750");
+    const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(copy))}`;
+    const image = new Image();
+    image.src = svgUrl;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 1800;
+    canvas.height = 750;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    pdf.setFontSize(15);
+    pdf.text(`${chart.label} / ${chart.unit}`, 12, 13);
+    pdf.setFontSize(8);
+    const interval = selectedPoints.length ? `${formatDateTime(selectedPoints[0].DataOra)} – ${formatDateTime(selectedPoints.at(-1)?.DataOra ?? "")}` : "Fără citiri";
+    pdf.text(`${turbine.name} · ${turbine.location} · ${interval}`, 12, 19);
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 12, 25, 273, 114);
     pdf.save(`${chart.label.toLowerCase().replace(/\s+/g, "-")}.pdf`);
   };
 
@@ -255,7 +258,7 @@ export default function AlphaClientDashboardPage() {
           <aside className="border border-slate-200 bg-white p-4"><p className="m-0 text-xs font-bold uppercase tracking-wide text-slate-500">Stare și alarme</p><div className={`mt-3 border p-3 ${statusTone(status.state)}`}><strong>{status.title}</strong><p className="mb-0 mt-1 text-sm font-normal">{status.detail}</p></div><div className="mt-4 border-t border-slate-200 pt-3"><p className="m-0 text-xs font-bold uppercase tracking-wide text-slate-500">Jurnal evenimente</p><p className="mb-0 mt-2 text-sm text-slate-600">{datasetState === "ready" ? "Afișează interpretarea ultimei citiri selectate, nu un flux live." : "Nu există date disponibile pentru interpretare."}</p></div></aside>
         </section>
       </div>
-      {activeChart && turbine && <ChartDialog chart={activeChart} points={selectedPoints} turbineName={turbine.name} turbineLocation={turbine.location} showRange={showRange} onClose={() => setActiveChart(null)} onExportPdf={() => exportChartPdf(activeChart)} onExportExcel={exportExcel} />}
+      {activeChart && turbine && <ChartDialog chart={activeChart} points={selectedPoints} turbineName={turbine.name} turbineLocation={turbine.location} showRange={showRange} onClose={() => setActiveChart(null)} onExportPdf={(svg) => exportChartPdf(activeChart, svg)} onExportExcel={exportExcel} />}
     </main>
   );
 }
