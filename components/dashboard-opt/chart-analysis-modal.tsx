@@ -96,8 +96,8 @@ export function ChartAnalysisModal({
       useCORS: true,
     });
     if (addPage) doc.addPage();
-    const pageWidth = 297;
-    const pageHeight = 210;
+    const pageWidth = 210;
+    const pageHeight = 297;
     const margin = 12;
     const imageWidth = pageWidth - margin * 2;
     const imageHeight = (canvas.height * imageWidth) / canvas.width;
@@ -122,7 +122,7 @@ export function ChartAnalysisModal({
     if (!points.length || isExporting) return;
     setIsExporting(true);
     try {
-      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       await addRenderedViewToPdf(doc, viewLabels[viewMode], false);
       doc.save(`${label.toLowerCase().replace(/[^a-z0-9]+/gi, "-")}-${viewMode}.pdf`);
     } finally {
@@ -135,7 +135,7 @@ export function ChartAnalysisModal({
     const initialMode = viewMode;
     setIsExporting(true);
     try {
-      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       for (const [index, mode] of (["horizontal", "vertical", "powerCurve"] as const).entries()) {
         setViewMode(mode);
         await waitForPaint();
