@@ -1186,14 +1186,6 @@ export default function OptimizedDashboardPage() {
           points={filteredPoints}
           showBand={showRangeBand}
           onClose={() => setActiveModal(null)}
-          onExportPdf={() =>
-            exportPdf(
-              activeModal.label,
-              activeModal.field,
-              activeModal.color,
-              activeModal.unit,
-            )
-          }
           onExportExcel={exportExcel}
         />
       )}

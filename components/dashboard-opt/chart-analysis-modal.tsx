@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileSpreadsheet, Gauge, ListFilter, TrendingUp, X } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./formatters";
 import { TelemetrySvgPlot } from "./telemetry-svg-plot";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 type Point = WorkbookTelemetry;
 
@@ -26,7 +27,6 @@ interface ChartAnalysisModalProps {
   points: Point[];
   showBand: boolean;
   onClose: () => void;
-  onExportPdf: () => void;
   onExportExcel: () => void;
 }
 
@@ -41,11 +41,12 @@ export function ChartAnalysisModal({
   points,
   showBand,
   onClose,
-  onExportPdf,
   onExportExcel,
 }: ChartAnalysisModalProps) {
   const [viewMode, setViewMode] = useState<"horizontal" | "vertical" | "powerCurve">("horizontal");
   const [hoveredScatterPoint, setHoveredScatterPoint] = useState<Point | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const exportViewRef = useRef<HTMLDivElement>(null);
 
   // Închidere cu Escape
   useEffect(() => {
@@ -76,91 +77,75 @@ export function ChartAnalysisModal({
     return `${formatDecimal(v, digits)} ${unit}`.trim();
   };
 
-  function exportAllViewsPdf() {
-    if (!points.length) return;
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const values = points.map((point) => Number(point[field]) || 0);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const left = 24;
-    const right = 273;
-    const top = 44;
-    const bottom = 175;
-    const drawHeader = (view: string) => {
-      doc.setFillColor(37, 123, 104);
-      doc.rect(0, 0, 297, 16, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("SISTEM MONITORIZARE URBAN LENTZ 2 · RAPORT GRAFIC", 14, 11);
+  const viewLabels = {
+    horizontal: "Orizontal",
+    vertical: "Jurnal vertical",
+    powerCurve: "Curbă Putere P(v)",
+  } as const;
+
+  const waitForPaint = () =>
+    new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+  async function addRenderedViewToPdf(doc: jsPDF, title: string, addPage: boolean) {
+    const node = exportViewRef.current;
+    if (!node) return;
+    await waitForPaint();
+    const canvas = await html2canvas(node, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+    });
+    if (addPage) doc.addPage();
+    const pageWidth = 297;
+    const pageHeight = 210;
+    const margin = 12;
+    const imageWidth = pageWidth - margin * 2;
+    const imageHeight = (canvas.height * imageWidth) / canvas.width;
+    const pageImageHeight = pageHeight - 38;
+
+    for (let offset = 0, page = 0; offset < imageHeight; offset += pageImageHeight, page += 1) {
+      if (page > 0) doc.addPage();
       doc.setTextColor(18, 26, 24);
-      doc.setFontSize(16);
-      doc.text(`${label} · ${view}`, 14, 28);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(`${label} · ${title}`, margin, 12);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(101, 113, 109);
-      doc.text(`${turbineName} · ${turbineLocation}`, 14, 35);
-      doc.text(`${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)} · ${points.length} citiri`, 14, 40);
-    };
-    const drawAxes = () => {
-      doc.setDrawColor(220, 227, 223);
-      for (let i = 0; i <= 4; i++) {
-        const y = bottom - ((bottom - top) * i) / 4;
-        doc.line(left, y, right, y);
-      }
-      doc.setTextColor(101, 113, 109);
       doc.setFontSize(8);
-      doc.text(formatVal(min), 5, bottom + 1);
-      doc.text(formatVal(max), 5, top + 1);
-    };
-
-    drawHeader("Orizontal");
-    drawAxes();
-    doc.setDrawColor(color);
-    doc.setLineWidth(0.8);
-    values.forEach((value, index) => {
-      const x = left + ((right - left) * index) / Math.max(values.length - 1, 1);
-      const y = bottom - ((value - min) / range) * (bottom - top);
-      if (index) {
-        const prev = values[index - 1];
-        const px = left + ((right - left) * (index - 1)) / Math.max(values.length - 1, 1);
-        const py = bottom - ((prev - min) / range) * (bottom - top);
-        doc.line(px, py, x, y);
-      }
-    });
-
-    doc.addPage();
-    drawHeader("Jurnal vertical");
-    const rowHeight = Math.min(5, 125 / Math.max(values.length, 1));
-    const shown = values.slice(0, Math.floor(125 / rowHeight));
-    shown.forEach((value, index) => {
-      const y = top + index * rowHeight;
-      const width = ((value - min) / range) * 190;
       doc.setTextColor(83, 96, 91);
-      doc.setFontSize(7);
-      doc.text(formatDateTime(points[index].DataOra), 14, y + 2.7);
-      doc.text(formatVal(value), 76, y + 2.7);
-      doc.setFillColor(color);
-      doc.rect(91, y, Math.max(1, width), Math.max(1.5, rowHeight - 1), "F");
-    });
+      doc.text(`${turbineName} · ${turbineLocation}`, margin, 18);
+      doc.text(`${formatDateTime(points[0].DataOra)} – ${formatDateTime(points.at(-1)!.DataOra)} · ${points.length} citiri`, margin, 23);
+      doc.addImage(canvas.toDataURL("image/png"), "PNG", margin, 29 - offset, imageWidth, imageHeight);
+    }
+  }
 
-    doc.addPage();
-    drawHeader("Curbă Putere P(v)");
-    drawAxes();
-    doc.setDrawColor("#257b68");
-    doc.setLineWidth(0.8);
-    const windMax = Math.max(...points.map((point) => Number(point.VitVant) || 0), 1);
-    points.forEach((point, index) => {
-      const x = left + ((right - left) * (Number(point.VitVant) || 0)) / windMax;
-      const y = bottom - (((Number(point.Putere) || 0) - min) / range) * (bottom - top);
-      doc.circle(x, y, 0.8, "S");
-      if (index && index % 2 === 0) doc.line(x, y, x - 0.5, y);
-    });
-    doc.setTextColor(101, 113, 109);
-    doc.setFontSize(8);
-    doc.text("Puncte telemetrice reale în funcție de viteza vântului", left, 188);
-    doc.save(`grafice-${turbineName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+  async function exportCurrentViewPdf() {
+    if (!points.length || isExporting) return;
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      await addRenderedViewToPdf(doc, viewLabels[viewMode], false);
+      doc.save(`${label.toLowerCase().replace(/[^a-z0-9]+/gi, "-")}-${viewMode}.pdf`);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function exportAllViewsPdf() {
+    if (!points.length || isExporting) return;
+    const initialMode = viewMode;
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      for (const [index, mode] of (["horizontal", "vertical", "powerCurve"] as const).entries()) {
+        setViewMode(mode);
+        await waitForPaint();
+        await addRenderedViewToPdf(doc, viewLabels[mode], index > 0);
+      }
+      doc.save(`grafice-${turbineName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    } finally {
+      setViewMode(initialMode);
+      setIsExporting(false);
+    }
   }
 
   // Coordonate pentru Curba de Putere P(v)
@@ -265,8 +250,9 @@ export function ChartAnalysisModal({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={onExportPdf}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#257b68] hover:bg-[#1f6656] transition-colors cursor-pointer"
+              onClick={exportCurrentViewPdf}
+              disabled={isExporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#257b68] hover:bg-[#1f6656] disabled:opacity-60 transition-colors cursor-pointer"
             >
               <Download size={13} />
               Exportă PDF · A4
@@ -274,7 +260,8 @@ export function ChartAnalysisModal({
             <button
               type="button"
               onClick={exportAllViewsPdf}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#1f6656] hover:bg-[#185244] transition-colors cursor-pointer"
+              disabled={isExporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#1f6656] hover:bg-[#185244] disabled:opacity-60 transition-colors cursor-pointer"
             >
               <Download size={13} />
               Toate variantele PDF
@@ -331,7 +318,7 @@ export function ChartAnalysisModal({
         </div>
 
         {/* Conținut modal */}
-        <div className="p-5 overflow-y-auto flex-1 bg-white">
+        <div ref={exportViewRef} className="p-5 overflow-y-auto flex-1 bg-white">
           {points.length === 0 ? (
             <div className="py-12 text-center text-sm text-[#65716d]">
               Nu există citiri pentru intervalul selectat.
@@ -359,7 +346,7 @@ export function ChartAnalysisModal({
             </div>
           ) : viewMode === "vertical" ? (
             /* Jurnal vertical dens cu spațiu micșorat */
-            <div className="flex flex-col max-h-[62vh] overflow-y-auto pr-2">
+            <div data-pdf-scroll className="flex flex-col max-h-[62vh] overflow-y-auto pr-2">
               <div className="grid grid-cols-[140px_100px_1fr] text-[10px] font-bold text-[#65716d] uppercase tracking-wider pb-2 border-b border-[#dce3df] sticky top-0 bg-white z-10">
                 <span>Data & Ora</span>
                 <span className="text-right pr-4">Valoare</span>
