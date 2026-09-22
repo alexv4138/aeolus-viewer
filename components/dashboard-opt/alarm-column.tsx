@@ -7,9 +7,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
-import type { AlertItem, AlertRule, AlertSeverity } from "./alert-demo";
+import type { AlertItem, AlertSeverity } from "./alert-demo";
 import { ALERT_CATALOG, severityRank } from "./alert-demo";
 import { AlertHistoryModal, AlertIcon } from "./alert-history-modal";
+import { AlertLegendModal } from "./alert-legend-modal";
 import { StateDemoPreview } from "./state-demo-preview";
 
 type Point = WorkbookTelemetry;
@@ -38,7 +39,7 @@ function cookieValue(name: string) {
 
 export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: AlarmColumnProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [selectedRule, setSelectedRule] = useState<AlertRule | null>(null);
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const activeAlerts = alerts.filter((alert) => alert.status === "active").sort((a, b) => severityRank[b.severity] - severityRank[a.severity]);
   const activeAlert = activeAlerts[0];
@@ -53,11 +54,6 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
   useEffect(() => {
     setFlashEnabled(cookieValue(FLASH_COOKIE) !== "off");
   }, []);
-
-  const openRule = (rule: AlertRule) => {
-    setSelectedRule(rule);
-    setIsHistoryOpen(true);
-  };
 
   const toggleFlash = () => {
     const next = !flashEnabled;
@@ -106,12 +102,13 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
             {ALERT_CATALOG.map((rule) => {
               const alert = alerts.find((item) => item.code === rule.code);
               const meta = severityMeta[rule.severity];
-              return <button type="button" onClick={() => openRule(rule)} key={rule.code} title={`${rule.code} · ${rule.parameter}`} className="flex min-h-12 items-center gap-1.5 px-2 py-1.5 text-left border border-transparent hover:border-[#cfd7d3]" style={{ color: alert?.status === "active" ? meta.color : "#53605b", backgroundColor: alert?.status === "active" ? meta.background : "#f8faf9" }}><AlertIcon name={rule.icon} size={14} /><span className="min-w-0"><strong className="block font-semibold truncate">{rule.parameter}</strong><span className="block text-[9px] opacity-80">{alert ? `${alert.status === "active" ? "Activă" : "Rezolvată"} · ${meta.label}` : `Fără alertă · ${meta.label}`}</span></span></button>;
+              return <button type="button" onClick={() => setIsLegendOpen(true)} key={rule.code} title={`${rule.code} · ${rule.parameter}`} className="flex min-h-12 items-center gap-1.5 border px-2 py-1.5 text-left transition-colors hover:brightness-[0.97]" style={{ color: meta.color, backgroundColor: meta.background, borderColor: `${meta.color}55` }}><AlertIcon name={rule.icon} size={14} /><span className="min-w-0"><strong className="block font-semibold truncate">{rule.parameter}</strong><span className="block text-[9px] opacity-80">{alert ? `${alert.status === "active" ? "Activă" : "Rezolvată"} · ${meta.label}` : `Fără alertă · ${meta.label}`}</span></span></button>;
             })}
           </div>
         </div>
       </div>
-      {isHistoryOpen && <AlertHistoryModal alerts={alerts} turbineName={turbineName} turbineLocation={turbineLocation} selectedRule={selectedRule} onClose={() => { setIsHistoryOpen(false); setSelectedRule(null); }} />}
+      {isHistoryOpen && <AlertHistoryModal alerts={alerts} turbineName={turbineName} turbineLocation={turbineLocation} onClose={() => setIsHistoryOpen(false)} />}
+      {isLegendOpen && <AlertLegendModal onClose={() => setIsLegendOpen(false)} />}
     </>
   );
 }
