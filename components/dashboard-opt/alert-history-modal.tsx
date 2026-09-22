@@ -16,17 +16,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import type { AlertIconName, AlertItem, AlertSeverity } from "./alert-demo";
+import type { AlertIconName, AlertItem } from "./alert-demo";
 import { severityRank } from "./alert-demo";
 import { formatDate, formatDateTime } from "./formatters";
-
-const severityStyle: Record<AlertSeverity, { label: string; color: string; soft: string }> = {
-  info: { label: "INFO", color: "#587387", soft: "#f4f7f9" },
-  low: { label: "SCĂZUT", color: "#63766d", soft: "#f1f5f2" },
-  medium: { label: "MEDIU", color: "#b87919", soft: "#fff7e9" },
-  high: { label: "RIDICAT", color: "#c76522", soft: "#fff0e9" },
-  critical: { label: "CRITIC", color: "#bd3a2b", soft: "#fdeeee" },
-};
+import { ALERT_PALETTES, type AlertPaletteId } from "./alert-palette";
 
 export function AlertIcon({ name, size = 14 }: { name: AlertIconName; size?: number }) {
   const Icon = {
@@ -66,10 +59,12 @@ interface AlertHistoryModalProps {
   alerts: AlertItem[];
   turbineName: string;
   turbineLocation: string;
+  paletteId: AlertPaletteId;
   onClose: () => void;
 }
 
-export function AlertHistoryModal({ alerts, turbineName, turbineLocation, onClose }: AlertHistoryModalProps) {
+export function AlertHistoryModal({ alerts, turbineName, turbineLocation, paletteId, onClose }: AlertHistoryModalProps) {
+  const severityStyle = ALERT_PALETTES[paletteId].colors;
   const initialDate = alerts[0] ? dateKey(alerts[0].occurredAt) : "";
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const selectedEvents = useMemo(

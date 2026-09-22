@@ -4,17 +4,10 @@ import React, { useEffect } from "react";
 import { BookOpen, X } from "lucide-react";
 import { ALERT_CATALOG, type AlertRule, type AlertSeverity } from "./alert-demo";
 import { AlertIcon } from "./alert-history-modal";
+import { ALERT_PALETTES, type AlertPaletteId } from "./alert-palette";
 
-const severityStyle: Record<AlertSeverity, { label: string; color: string; soft: string }> = {
-  info: { label: "INFO", color: "#587387", soft: "#f4f7f9" },
-  low: { label: "SCĂZUT", color: "#63766d", soft: "#f1f5f2" },
-  medium: { label: "MEDIU", color: "#b87919", soft: "#fff7e9" },
-  high: { label: "RIDICAT", color: "#c76522", soft: "#fff0e9" },
-  critical: { label: "CRITIC", color: "#bd3a2b", soft: "#fdeeee" },
-};
-
-function LegendCard({ rule }: { rule: AlertRule }) {
-  const severity = severityStyle[rule.severity];
+function LegendCard({ rule, paletteId }: { rule: AlertRule; paletteId: AlertPaletteId }) {
+  const severity = ALERT_PALETTES[paletteId].colors[rule.severity];
   return (
     <article className="grid gap-3 border border-[#dce3df] border-l-4 bg-white p-4 sm:grid-cols-[minmax(150px,0.8fr)_minmax(180px,1.35fr)_minmax(180px,1.35fr)_minmax(170px,1.2fr)]" style={{ borderLeftColor: severity.color }}>
       <div>
@@ -31,7 +24,7 @@ function LegendCard({ rule }: { rule: AlertRule }) {
   );
 }
 
-export function AlertLegendModal({ onClose }: { onClose: () => void }) {
+export function AlertLegendModal({ paletteId, onClose }: { paletteId: AlertPaletteId; onClose: () => void }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKeyDown);
@@ -46,9 +39,9 @@ export function AlertLegendModal({ onClose }: { onClose: () => void }) {
           <button type="button" onClick={onClose} className="inline-flex shrink-0 items-center gap-1.5 border border-[#dce3df] bg-white px-3 py-2 text-xs font-semibold text-[#53605b] hover:bg-[#f0f4f2]"><X size={14} /> Închide</button>
         </header>
         <div className="flex flex-wrap gap-1.5 border-b border-[#dce3df] bg-white px-5 py-3 sm:px-6">
-          {(Object.keys(severityStyle) as AlertSeverity[]).map((level) => { const style = severityStyle[level]; const count = ALERT_CATALOG.filter((rule) => rule.severity === level).length; return <span key={level} className="inline-flex items-center gap-1.5 border border-[#edf0ee] px-2 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}><i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: style.color }} />{style.label}<span className="font-mono opacity-70">{count}</span></span>; })}
+          {(Object.keys(ALERT_PALETTES[paletteId].colors) as AlertSeverity[]).map((level) => { const style = ALERT_PALETTES[paletteId].colors[level]; const count = ALERT_CATALOG.filter((rule) => rule.severity === level).length; return <span key={level} className="inline-flex items-center gap-1.5 border border-[#edf0ee] px-2 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}><i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: style.color }} />{style.label}<span className="font-mono opacity-70">{count}</span></span>; })}
         </div>
-        <div className="overflow-y-auto p-3 sm:p-5"><div className="space-y-2">{ALERT_CATALOG.map((rule) => <LegendCard key={rule.code} rule={rule} />)}</div></div>
+        <div className="overflow-y-auto p-3 sm:p-5"><div className="space-y-2">{ALERT_CATALOG.map((rule) => <LegendCard key={rule.code} rule={rule} paletteId={paletteId} />)}</div></div>
         <footer className="border-t border-[#dce3df] bg-white px-5 py-2 text-[9px] text-[#78847f] sm:px-6">Catalog demonstrativ pentru interfața beta. Notificările afișate nu trimit mesaje în afara aplicației.</footer>
       </section>
     </div>
