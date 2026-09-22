@@ -210,43 +210,6 @@ export function TelemetrySvgPlot({
           );
         })}
 
-        {/* Linie Orizontală de Referință pentru Media Perioadei / Media Zilnică */}
-        {showAverageLine && averageValue != null && range > 0.0001 && (
-          <g pointerEvents="none">
-            <line
-              x1={left}
-              x2={right}
-              y1={getY(averageValue)}
-              y2={getY(averageValue)}
-              stroke="#bd861c"
-              strokeWidth="1.5"
-              strokeDasharray="4 3"
-              opacity="0.9"
-            />
-            <rect
-              x={right - 122}
-              y={Math.max(top + 2, Math.min(bottom - 16, getY(averageValue) - 13))}
-              width={120}
-              height={14}
-              fill="#fff9ee"
-              stroke="#f5dfbe"
-              strokeWidth="1"
-              rx="2"
-            />
-            <text
-              x={right - 62}
-              y={Math.max(top + 2, Math.min(bottom - 16, getY(averageValue) - 13)) + 10}
-              textAnchor="middle"
-              fill="#a06010"
-              fontSize="9"
-              fontWeight="bold"
-              fontFamily="var(--font-geist-mono), monospace"
-            >
-              Medie: {formatVal(averageValue)}
-            </text>
-          </g>
-        )}
-
         {/* Modul DENS (> 50 puncte): Linie frântă tehnică + arie discretă */}
         {isDense ? (
           <>
@@ -359,6 +322,36 @@ export function TelemetrySvgPlot({
               />
             );
           })}
+
+        {/* Average reference is deliberately painted over the data series. */}
+        {showAverageLine && averageValue != null && range > 0.0001 && (
+          <g pointerEvents="none">
+            <line
+              x1={left}
+              x2={right}
+              y1={getY(averageValue)}
+              y2={getY(averageValue)}
+              stroke="#a06010"
+              strokeWidth="1"
+              strokeDasharray="3 3"
+              opacity="0.85"
+            />
+            <text
+              x={right - 3}
+              y={Math.max(top + 8, Math.min(bottom - 3, getY(averageValue) - 4))}
+              textAnchor="end"
+              fill="#8a520b"
+              stroke="#ffffff"
+              strokeWidth="2.5"
+              paintOrder="stroke"
+              fontSize="7"
+              fontWeight="bold"
+              fontFamily="var(--font-geist-mono), monospace"
+            >
+              Medie {formatVal(averageValue)}
+            </text>
+          </g>
+        )}
 
         {/* Etichete Axa X (Data / Ora) */}
         {tickIndices.map((idx, pos) => {
