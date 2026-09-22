@@ -63,26 +63,31 @@ function atOffset(latestIso: string, hours: number) {
 
 export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   const activeCode = "ERR-004";
-  // Keep every severity represented among the newest demo rows/graph markers.
-  const recentCodes = ["ERR-015", "ERR-014", "ERR-006", "ERR-001", "ERR-021", "ERR-008", "ERR-012"];
-  const resolvedRules = ALERT_CATALOG.filter((rule) => rule.code !== activeCode).sort((a, b) => {
-    const aRank = recentCodes.indexOf(a.code);
-    const bRank = recentCodes.indexOf(b.code);
-    return (aRank < 0 ? Number.MAX_SAFE_INTEGER : aRank) - (bRank < 0 ? Number.MAX_SAFE_INTEGER : bRank);
-  });
+  // Make the latest eight visible items demonstrate every severity, with two INFO events.
+  const recentOffsets: Record<string, number> = {
+    "ERR-015": -1,
+    "ERR-014": -2,
+    "ERR-006": -3,
+    "ERR-001": -4,
+    "ERR-021": -5,
+    "ERR-008": -6,
+  };
+  const resolvedRules = ALERT_CATALOG.filter((rule) => rule.code !== activeCode);
   const resolved = resolvedRules.map((rule, index) => ({
     ...rule,
     text: rule.description,
     reading: DEMO_READINGS[rule.code],
-    occurredAt: atOffset(latest.DataOra, -23 + index),
+    occurredAt: atOffset(latest.DataOra, recentOffsets[rule.code] ?? -(8 + index)),
     status: "resolved" as const,
   }));
+  const infoRule = ALERT_CATALOG.find((rule) => rule.code === "ERR-015")!;
+  resolved.push({ ...infoRule, text: infoRule.description, reading: DEMO_READINGS[infoRule.code], occurredAt: atOffset(latest.DataOra, -7), status: "resolved" as const });
   const activeRule = ALERT_CATALOG.find((rule) => rule.code === activeCode)!;
   const active = {
     ...activeRule,
     text: activeRule.description,
     reading: DEMO_READINGS[activeRule.code],
-    occurredAt: atOffset(latest.DataOra, -0.5),
+    occurredAt: atOffset(latest.DataOra, -0.25),
     status: "active" as const,
     isDemoActive: true,
   };
