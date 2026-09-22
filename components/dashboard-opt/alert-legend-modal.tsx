@@ -39,8 +39,8 @@ export function AlertLegendModal({ paletteId, onClose }: { paletteId: AlertPalet
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 p-3 backdrop-blur-[1px] sm:p-6" role="dialog" aria-modal="true" aria-labelledby="alert-legend-title" onClick={onClose}>
-      <section className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden border border-[#dce3df] bg-[#f7f9f8] shadow-2xl" onClick={(event) => event.stopPropagation()}>
+    <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/55 p-3 pt-3 backdrop-blur-[1px] sm:p-6" role="dialog" aria-modal="true" aria-labelledby="alert-legend-title" onClick={onClose}>
+      <section className="flex h-[92vh] w-full max-w-6xl shrink-0 flex-col overflow-hidden border border-[#dce3df] bg-[#f7f9f8] shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <header className="flex items-start justify-between gap-4 border-b border-[#dce3df] bg-white px-5 py-4 sm:px-6">
           <div><span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#65716d]"><BookOpen size={13} /> Ghid de referință · {ALERT_CATALOG.length} tipuri</span><h2 id="alert-legend-title" className="m-0 mt-1 text-lg font-bold text-[#17211d] sm:text-xl">Legendă alerte și evenimente</h2><p className="m-0 mt-1 text-[11px] text-[#65716d]">Semnificația, severitatea și răspunsul recomandat pentru fiecare cod.</p></div>
           <button type="button" onClick={onClose} className="inline-flex shrink-0 items-center gap-1.5 border border-[#dce3df] bg-white px-3 py-2 text-xs font-semibold text-[#53605b] hover:bg-[#f0f4f2]"><X size={14} /> Închide</button>
