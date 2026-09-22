@@ -13,6 +13,8 @@ import {
 import { TelemetrySvgPlot } from "./telemetry-svg-plot";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import type { AlertItem } from "./alert-demo";
+import { AlertIcon } from "./alert-history-modal";
 
 type Point = WorkbookTelemetry;
 
@@ -26,6 +28,7 @@ interface ChartAnalysisModalProps {
   turbineLocation: string;
   points: Point[];
   showBand: boolean;
+  alerts: AlertItem[];
   onClose: () => void;
   onExportExcel: () => void;
 }
@@ -40,6 +43,7 @@ export function ChartAnalysisModal({
   turbineLocation,
   points,
   showBand,
+  alerts,
   onClose,
   onExportExcel,
 }: ChartAnalysisModalProps) {
@@ -389,6 +393,7 @@ export function ChartAnalysisModal({
                 unit={unit}
                 digits={digits}
                 showBand={showBand}
+                alerts={alerts}
                 large
               />
               <div className="flex justify-between text-[11px] text-[#7a8682] pt-2 border-t border-[#edf0ee]">
@@ -423,6 +428,11 @@ export function ChartAnalysisModal({
                   >
                     <span className="font-mono text-[11px] text-[#53605b]">
                       {formatDateTime(pt.DataOra)}
+                      {alerts.filter((alert) => alert.occurredAt.slice(0, 16) === pt.DataOra.slice(0, 16)).map((alert) => (
+                        <span key={`${alert.code}-${alert.occurredAt}`} className="ml-2 inline-flex items-center gap-1 font-sans text-[9px] font-bold" style={{ color: alert.severity === "critical" ? "#bd3a2b" : alert.severity === "high" ? "#c76522" : "#b87919" }} title={`${alert.code} · ${alert.parameter}`}>
+                          <AlertIcon name={alert.icon} size={11} /> {alert.code}
+                        </span>
+                      ))}
                     </span>
                     <span className="font-mono font-bold text-[#121a18] text-right pr-4">
                       {formatVal(val)}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AlertOctagon,
   Bell,
@@ -8,8 +8,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
-import type { AlertItem, AlertSeverity } from "./alert-demo";
-import { severityRank } from "./alert-demo";
+import type { AlertItem, AlertRule, AlertSeverity } from "./alert-demo";
+import { ALERT_CATALOG } from "./alert-demo";
 import { AlertHistoryModal, AlertIcon } from "./alert-history-modal";
 import { formatInt, formatVibration } from "./formatters";
 
@@ -39,6 +39,7 @@ function cookieValue(name: string) {
 
 export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: AlarmColumnProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [selectedRule, setSelectedRule] = useState<AlertRule | null>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const activeAlert = alerts.find((alert) => alert.isDemoActive) ?? alerts[0];
   const recentAlerts = alerts.slice(0, 3);
@@ -51,14 +52,10 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
     setFlashEnabled(cookieValue(FLASH_COOKIE) !== "off");
   }, []);
 
-  const externalEvents = useMemo(() => [
-    { label: "Furtună", icon: "storm" as const },
-    { label: "Grindină", icon: "hail" as const },
-    { label: "Seism", icon: "seismic" as const },
-    { label: "Impact pasăre", icon: "bird" as const },
-    { label: "Supracurent", icon: "current" as const },
-    { label: "Incendiu", icon: "fire" as const },
-  ].map((event) => ({ ...event, alert: alerts.find((item) => item.icon === event.icon || (event.icon === "current" && item.code === "ERR-005")) })), [alerts]);
+  const openRule = (rule: AlertRule) => {
+    setSelectedRule(rule);
+    setIsHistoryOpen(true);
+  };
 
   const toggleFlash = () => {
     const next = !flashEnabled;
@@ -120,16 +117,17 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
         </div>
 
         <div className="mt-4 pt-3 border-t border-[#edf0ee]">
-          <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-[#65716d] uppercase tracking-wider">Monitorizare evenimente</span><span className="text-[10px] text-[#8e9c98]">demo</span></div>
+          <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-[#65716d] uppercase tracking-wider">Monitorizare evenimente</span><span className="text-[10px] text-[#8e9c98]">{ALERT_CATALOG.length} tipuri · demo</span></div>
           <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-            {externalEvents.map(({ icon, label, alert }) => {
-              const meta = alert ? severityMeta[alert.severity] : undefined;
-              return <button type="button" onClick={() => setIsHistoryOpen(true)} key={label} className="flex items-center gap-1.5 px-2 py-2 text-left" style={{ color: meta?.color ?? "#53605b", backgroundColor: meta?.background ?? "#f8faf9" }}><AlertIcon name={icon} size={13} /><span className="min-w-0"><strong className="block font-semibold truncate">{label}</strong><span className="block text-[9px] opacity-80">{alert ? meta?.label : "Fără alertă"}</span></span></button>;
+            {ALERT_CATALOG.map((rule) => {
+              const alert = alerts.find((item) => item.code === rule.code);
+              const meta = severityMeta[rule.severity];
+              return <button type="button" onClick={() => openRule(rule)} key={rule.code} title={`${rule.code} · ${rule.parameter}`} className="flex min-h-12 items-center gap-1.5 px-2 py-1.5 text-left border border-transparent hover:border-[#cfd7d3]" style={{ color: alert ? meta.color : "#53605b", backgroundColor: alert ? meta.background : "#f8faf9" }}><AlertIcon name={rule.icon} size={14} /><span className="min-w-0"><strong className="block font-semibold truncate">{rule.parameter}</strong><span className="block text-[9px] opacity-80">{alert ? `${meta.label} · ${alert.occurredAt.slice(11, 16)}` : `Fără alertă · ${meta.label}`}</span></span></button>;
             })}
           </div>
         </div>
       </div>
-      {isHistoryOpen && <AlertHistoryModal alerts={alerts} turbineName={turbineName} turbineLocation={turbineLocation} onClose={() => setIsHistoryOpen(false)} />}
+      {isHistoryOpen && <AlertHistoryModal alerts={alerts} turbineName={turbineName} turbineLocation={turbineLocation} selectedRule={selectedRule} onClose={() => { setIsHistoryOpen(false); setSelectedRule(null); }} />}
     </>
   );
 }

@@ -1,45 +1,48 @@
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 
 export type AlertSeverity = "info" | "low" | "medium" | "high" | "critical";
-export type AlertIconName =
-  | "overspeed"
-  | "temperature"
-  | "vibration"
-  | "voltage"
-  | "current"
-  | "storm"
-  | "hail"
-  | "seismic"
-  | "bird"
-  | "fire"
-  | "brake"
-  | "network";
-
-export type AlertItem = {
+export type AlertIconName = "overspeed" | "temperature" | "vibration" | "voltage" | "current" | "storm" | "hail" | "seismic" | "bird" | "fire" | "brake" | "network";
+export type AlertRule = {
   code: string;
-  occurredAt: string;
-  severity: AlertSeverity;
   parameter: string;
-  text: string;
+  description: string;
+  severity: AlertSeverity;
   action: string;
+  notifications: string;
   icon: AlertIconName;
+};
+export type AlertItem = AlertRule & {
+  occurredAt: string;
   isDemoActive?: boolean;
 };
 
+// Notification recipients are intentionally omitted; this is a client-visible demo catalog.
+export const ALERT_CATALOG: AlertRule[] = [
+  { code: "ERR-001", parameter: "Supra-turație (Overspeed)", description: "Turația (RPM) a depășit limita maximă admisă din cauza rafalelor de vânt.", severity: "critical", action: "Activare automată frână aerodinamică / mecanică.", notifications: "SMS + e-mail de urgență + alertă pop-up roșie și semnal sonor.", icon: "overspeed" },
+  { code: "ERR-002", parameter: "Supraîncălzire generator", description: "Temperatura înfășurărilor generatorului a depășit pragul de protecție.", severity: "critical", action: "Deconectare sarcină / oprire de protecție.", notifications: "SMS + e-mail + pop-up roșu cu alarmă în interfață.", icon: "temperature" },
+  { code: "ERR-003", parameter: "Vibrații excesive rotor", description: "Nivelul vibrațiilor pe axul vertical a depășit limita admisă (dezechilibru rotor/pale).", severity: "critical", action: "Oprire imediată a turbinei și inspecție mecanică.", notifications: "SMS + e-mail de urgență + pop-up roșu.", icon: "vibration" },
+  { code: "ERR-004", parameter: "Supratensiune generator", description: "Tensiunea de ieșire depășește limita admisă a invertorului sau bateriilor.", severity: "high", action: "Cuplare pe rezistență de frânare (Dump Load).", notifications: "SMS, e-mail și notificare push.", icon: "voltage" },
+  { code: "ERR-005", parameter: "Supracurent / scurtcircuit", description: "Amperajul depășește limita nominală pe linia de ieșire.", severity: "critical", action: "Deconectare automată a siguranței / protecției invertorului.", notifications: "SMS + e-mail + pop-up roșu în dashboard.", icon: "current" },
+  { code: "ERR-006", parameter: "Subtensiune generator", description: "Generatorul se rotește, dar tensiunea este anormal de scăzută (posibilă punte redresoare defectă).", severity: "medium", action: "Notificare tehnician / verificare diode.", notifications: "E-mail, push și alertă vizuală galbenă.", icon: "voltage" },
+  { code: "ERR-007", parameter: "Cuplu mecanic excesiv", description: "Blocaj parțial sau gripare a rulmenților axului vertical.", severity: "high", action: "Alertă mentenanță rulmenți / oprire de siguranță.", notifications: "SMS, e-mail și notificare push.", icon: "brake" },
+  { code: "ERR-008", parameter: "Cădere conexiune rețea", description: "Pierderea semnalului Wi-Fi / 3G / 4G / 5G pe modulul de transmisie.", severity: "medium", action: "Salvare locală a datelor până la reconectare.", notifications: "E-mail la reconectare și banner Offline în dashboard.", icon: "network" },
+  { code: "ERR-009", parameter: "Defecțiune senzor anemometru", description: "Lipsește semnalul vitezei vântului sau datele sunt incoerente.", severity: "medium", action: "Trecere automată în modul conservator.", notifications: "E-mail și notificare push.", icon: "storm" },
+  { code: "ERR-010", parameter: "Defecțiune senzor turație", description: "Semnal întrerupt de la encoderul / senzorul Hall RPM.", severity: "high", action: "Limitare putere / frânare preventivă.", notifications: "SMS, e-mail și alertă vizuală în dashboard.", icon: "overspeed" },
+  { code: "ERR-011", parameter: "Zgomot acustic anormal", description: "Nivelul dB depășește pragul normal (posibile fisuri ale palelor sau uzură rulmenți).", severity: "medium", action: "Inspecție vizuală a palelor și verificarea prinderilor.", notifications: "E-mail și notificare de mentenanță.", icon: "vibration" },
+  { code: "ERR-012", parameter: "Eroare invertor / rețea", description: "Invertorul Grid-tie este offline sau sincronizarea a eșuat.", severity: "high", action: "Cuplare pe Dump Load (rezistență de sarcină).", notifications: "SMS, e-mail și alertă portocalie în dashboard.", icon: "voltage" },
+  { code: "ERR-013", parameter: "Defecțiune sistem frânare", description: "Protecția la supra-turație nu a redus RPM-ul în timpul alocat.", severity: "critical", action: "Alarmă acustică locală / comandă de urgență.", notifications: "SMS + e-mail de urgență + pop-up roșu.", icon: "brake" },
+  { code: "ERR-014", parameter: "Temperatură mediu extremă", description: "Temperatura exterioară este sub −20 °C sau peste +50 °C.", severity: "low", action: "Monitorizare suplimentară a vâscozității lubrifiantului.", notifications: "E-mail și notificare informativă în aplicație.", icon: "temperature" },
+  { code: "ERR-015", parameter: "Presiune atmosferică anormală", description: "Modificarea bruscă de presiune poate indica o furtună iminentă.", severity: "medium", action: "Pregătirea sistemului pentru rafale puternice.", notifications: "Notificare push și indicator meteo special în dashboard.", icon: "storm" },
+  { code: "ERR-016", parameter: "Anomalie radiație solară", description: "Inconsistență între datele foto-senzorului și meteorologia locală.", severity: "low", action: "Autodiagnosticare senzor / curățare optică.", notifications: "Înregistrare în jurnalul de mentenanță, fără alertă directă.", icon: "temperature" },
+  { code: "ERR-017", parameter: "Defecțiune senzor vibrații", description: "Senzorul accelerometru nu trimite date validabile (date înghețate).", severity: "medium", action: "Avertisment pentru mentenanța senzorului.", notifications: "E-mail și notificare galbenă în dashboard.", icon: "vibration" },
+  { code: "ERR-018", parameter: "Temperatură ridicată invertor", description: "Radiatorul invertorului sau electronica de putere a depășit pragul de temperatură.", severity: "high", action: "Pornire ventilație forțată / reducere derating putere.", notifications: "SMS, e-mail și alertă portocalie în dashboard.", icon: "temperature" },
+  { code: "ERR-019", parameter: "Asimetrie sarcină faze", description: "Uzură neuniformă sau dezechilibrare electrică pe faze.", severity: "high", action: "Verificarea conexiunilor statorice ale generatorului.", notifications: "SMS, e-mail și alertă vizuală.", icon: "current" },
+  { code: "ERR-020", parameter: "Alertă frână mecanică blocată", description: "Sistemul de frânare rămâne activat deși turația a scăzut la zero.", severity: "medium", action: "Resetare manuală / comandă de deblocare.", notifications: "E-mail și notificare push.", icon: "brake" },
+  { code: "ERR-021", parameter: "Baterie backup controller descărcată", description: "Tensiunea bateriei interne a modulului de monitorizare este redusă.", severity: "low", action: "Înlocuirea bateriei tampon a controllerului.", notifications: "E-mail și reminder săptămânal în aplicație.", icon: "voltage" },
+  { code: "ERR-022", parameter: "Oprire de urgență manuală (E-Stop)", description: "Butonul fizic sau comanda software de oprire de urgență a fost activată.", severity: "critical", action: "Oprire totală până la deblocarea manuală.", notifications: "SMS, e-mail și stare de urgență pe tot ecranul.", icon: "fire" },
+];
+
 const HOUR = 60 * 60 * 1000;
-
-const RULES: Record<string, Omit<AlertItem, "occurredAt" | "isDemoActive">> = {
-  "ERR-001": { code: "ERR-001", severity: "critical", parameter: "Supra-turație rotor", text: "Turația rotorului a depășit limita admisă în timpul unei rafale de vânt.", action: "Activare automată frână aerodinamică / mecanică.", icon: "overspeed" },
-  "ERR-003": { code: "ERR-003", severity: "critical", parameter: "Vibrații excesive rotor", text: "Nivelul de vibrații pe axul vertical a depășit limita admisă.", action: "Oprire imediată și inspecție mecanică.", icon: "vibration" },
-  "ERR-004": { code: "ERR-004", severity: "high", parameter: "Supratensiune generator", text: "Tensiunea de ieșire este peste limita admisă pentru invertor / baterii.", action: "Cuplare pe rezistență de frânare (Dump Load).", icon: "voltage" },
-  "ERR-005": { code: "ERR-005", severity: "critical", parameter: "Supracurent", text: "Amperajul de ieșire a depășit pragul nominal.", action: "Deconectare automată a protecției invertorului.", icon: "current" },
-  "ERR-008": { code: "ERR-008", severity: "medium", parameter: "Cădere conexiune rețea", text: "Semnalul de transmisie al controllerului a fost întrerupt temporar.", action: "Salvare locală până la reconectare.", icon: "network" },
-  "ERR-013": { code: "ERR-013", severity: "critical", parameter: "Defecțiune sistem frânare", text: "Protecția la supra-turație nu a redus RPM-ul în timpul alocat.", action: "Comandă de urgență și verificare fizică.", icon: "brake" },
-  "ERR-014": { code: "ERR-014", severity: "low", parameter: "Temperatură mediu extremă", text: "Temperatura exterioară este în afara intervalului recomandat.", action: "Monitorizare suplimentară a sistemului.", icon: "temperature" },
-  "ERR-015": { code: "ERR-015", severity: "medium", parameter: "Presiune atmosferică anormală", text: "Schimbarea bruscă de presiune indică posibile rafale sau furtună.", action: "Pregătire sistem pentru rafale puternice.", icon: "storm" },
-  "ERR-018": { code: "ERR-018", severity: "high", parameter: "Temperatură ridicată invertor", text: "Electronica de putere a invertorului a depășit pragul de temperatură.", action: "Ventilație forțată și reducere controlată a puterii.", icon: "temperature" },
-};
-
 function atOffset(latestIso: string, hours: number) {
   const date = new Date(latestIso);
   date.setTime(date.getTime() + hours * HOUR);
@@ -47,30 +50,14 @@ function atOffset(latestIso: string, hours: number) {
 }
 
 export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
-  const base = latest.DataOra;
   const events: Array<[string, number, boolean?]> = [
-    ["ERR-014", -148],
-    ["ERR-008", -119],
-    ["ERR-015", -94],
-    ["ERR-004", -70],
-    ["ERR-003", -47],
-    ["ERR-001", -25],
-    ["ERR-004", -4, true],
+    ["ERR-014", -148], ["ERR-008", -119], ["ERR-015", -94],
+    ["ERR-004", -70], ["ERR-003", -47], ["ERR-001", -25], ["ERR-004", -4, true],
   ];
-
-  return events
-    .map(([code, offset, isDemoActive]) => ({
-      ...RULES[code],
-      occurredAt: atOffset(base, offset),
-      isDemoActive,
-    }))
-    .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
+  return events.map(([code, offset, isDemoActive]) => {
+    const rule = ALERT_CATALOG.find((item) => item.code === code)!;
+    return { ...rule, occurredAt: atOffset(latest.DataOra, offset), isDemoActive };
+  }).sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
 }
 
-export const severityRank: Record<AlertSeverity, number> = {
-  info: 0,
-  low: 1,
-  medium: 2,
-  high: 3,
-  critical: 4,
-};
+export const severityRank: Record<AlertSeverity, number> = { info: 0, low: 1, medium: 2, high: 3, critical: 4 };

@@ -16,7 +16,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import type { AlertIconName, AlertItem, AlertSeverity } from "./alert-demo";
+import type { AlertIconName, AlertItem, AlertRule, AlertSeverity } from "./alert-demo";
 import { severityRank } from "./alert-demo";
 import { formatDate, formatDateTime } from "./formatters";
 
@@ -66,10 +66,11 @@ interface AlertHistoryModalProps {
   alerts: AlertItem[];
   turbineName: string;
   turbineLocation: string;
+  selectedRule: AlertRule | null;
   onClose: () => void;
 }
 
-export function AlertHistoryModal({ alerts, turbineName, turbineLocation, onClose }: AlertHistoryModalProps) {
+export function AlertHistoryModal({ alerts, turbineName, turbineLocation, selectedRule, onClose }: AlertHistoryModalProps) {
   const initialDate = alerts[0] ? dateKey(alerts[0].occurredAt) : "";
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const selectedEvents = useMemo(
@@ -86,13 +87,30 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, onClos
         <div className="sticky top-0 z-10 flex flex-wrap items-start justify-between gap-3 px-5 py-4 bg-[#fcfdfd] border-b border-[#dce3df]">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#65716d]">Jurnal evenimente · {turbineName}</span>
-            <h2 className="m-0 text-xl font-bold text-[#121a18]">Istoric alerte și urgențe</h2>
+            <h2 className="m-0 text-xl font-bold text-[#121a18]">{selectedRule ? selectedRule.parameter : "Istoric alerte și urgențe"}</h2>
             <p className="m-0 mt-1 text-xs text-[#65716d]">{turbineLocation} · ultimele 7 zile demo · {alerts.length} evenimente</p>
           </div>
           <button type="button" onClick={onClose} className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-[#53605b] border border-[#dce3df] hover:bg-[#f0f4f2]">
             <X size={14} /> Închide
           </button>
         </div>
+
+        {selectedRule && (() => {
+          const style = severityStyle[selectedRule.severity];
+          const current = alerts.find((alert) => alert.code === selectedRule.code);
+          return <section className="mx-5 mt-4 border p-4" style={{ borderColor: style.color, backgroundColor: style.soft }}>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-2">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-[#121a18]"><AlertIcon name={selectedRule.icon} size={17} /> {selectedRule.code} · {selectedRule.parameter}</span>
+              <span className="px-2 py-1 text-[10px] font-extrabold" style={{ color: style.color, backgroundColor: "#ffffff" }}>SEVERITATE: {style.label}</span>
+            </div>
+            <dl className="mt-3 grid gap-x-5 gap-y-3 text-xs sm:grid-cols-2">
+              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Descriere / cauză posibilă</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.description}</dd></div>
+              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Acțiune automată / recomandată</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.action}</dd></div>
+              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Alerte & notificări recomandate</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.notifications}</dd></div>
+              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Stare demo</dt><dd className="m-0 mt-1 text-[#28332f]">{current ? `Eveniment în jurnal · ${formatDateTime(current.occurredAt)}` : "Monitorizat · fără eveniment demo în interval"}</dd></div>
+            </dl>
+          </section>;
+        })()}
 
         <div className="grid gap-5 p-5 lg:grid-cols-[1.05fr_1fr]">
           <section className="border border-[#dce3df] p-4">
