@@ -7,8 +7,8 @@ export const ALERT_PALETTES: Record<AlertPaletteId, { name: string; colors: Seve
   contrast: {
     name: "A · Contrast clar",
     colors: {
-      critical: { label: "CRITIC", color: "#B42318", soft: "#FDECEA" },
-      high: { label: "RIDICAT", color: "#E85D04", soft: "#FFF0E5" },
+      critical: { label: "CRITIC", color: "#D00000", soft: "#FFF3F2" },
+      high: { label: "RIDICAT", color: "#F57C00", soft: "#FFF2E4" },
       medium: { label: "MEDIU", color: "#A66B00", soft: "#FFF6D8" },
       low: { label: "SCĂZUT", color: "#89634D", soft: "#F3EAE3" },
       info: { label: "INFO", color: "#2878A5", soft: "#EAF4F9" },
@@ -17,8 +17,8 @@ export const ALERT_PALETTES: Record<AlertPaletteId, { name: string; colors: Seve
   soft: {
     name: "B · Tonuri mai blânde",
     colors: {
-      critical: { label: "CRITIC", color: "#A8322A", soft: "#F8ECEA" },
-      high: { label: "RIDICAT", color: "#C65A16", soft: "#FAEEE6" },
+      critical: { label: "CRITIC", color: "#C62828", soft: "#FBEFED" },
+      high: { label: "RIDICAT", color: "#D96B16", soft: "#FAEFE6" },
       medium: { label: "MEDIU", color: "#927000", soft: "#F7F1DD" },
       low: { label: "SCĂZUT", color: "#826650", soft: "#F1EBE6" },
       info: { label: "INFO", color: "#356C8A", soft: "#EAF1F5" },
