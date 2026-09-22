@@ -26,6 +26,8 @@ interface WeatherItemProps {
   unit: string;
   sublabel?: string;
   highlight?: boolean;
+  iconColor: string;
+  iconBackground: string;
 }
 
 function WeatherItem({
@@ -35,6 +37,8 @@ function WeatherItem({
   unit,
   sublabel,
   highlight = false,
+  iconColor,
+  iconBackground,
 }: WeatherItemProps) {
   return (
     <div
@@ -42,7 +46,7 @@ function WeatherItem({
         highlight ? "bg-[#f5faf8] -mx-2 px-2 border-l-2 border-l-[#257b68]" : ""
       }`}
     >
-      <div className="p-1.5 bg-[#f0f4f2] text-[#2d403a] rounded-none shrink-0 mt-0.5">
+      <div className="p-1.5 rounded-none shrink-0 mt-0.5" style={{ color: iconColor, backgroundColor: iconBackground }}>
         {icon}
       </div>
       <div className="flex flex-col min-w-0 flex-1">
@@ -93,6 +97,8 @@ export function WeatherColumn({ latest }: WeatherColumnProps) {
           unit="m/s"
           sublabel={windState}
           highlight
+          iconColor="#328c78"
+          iconBackground="#eaf4f0"
         />
         <WeatherItem
           icon={<ArrowUpRight size={18} />}
@@ -100,30 +106,40 @@ export function WeatherColumn({ latest }: WeatherColumnProps) {
           value={latest.DirectieVant || "—"}
           unit=""
           sublabel="Orientare anemometru"
+          iconColor="#607f9b"
+          iconBackground="#edf3f8"
         />
         <WeatherItem
           icon={<Thermometer size={18} />}
           label="Temperatura aerului"
           value={formatDecimal(latest.TempC, 1)}
           unit="°C"
+          iconColor="#d97745"
+          iconBackground="#fff1e9"
         />
         <WeatherItem
           icon={<Gauge size={18} />}
           label="Presiune atmosferică"
           value={formatInt(latest.PresAtm)}
           unit="hPa"
+          iconColor="#557fa0"
+          iconBackground="#edf3f8"
         />
         <WeatherItem
           icon={<Droplets size={18} />}
           label="Umiditate relativă"
           value={formatInt(latest.Umiditate)}
           unit="%"
+          iconColor="#318ca2"
+          iconBackground="#eaf5f7"
         />
         <WeatherItem
           icon={<Sun size={18} />}
           label="Radiație solară"
           value={formatInt(latest.RadSolara)}
           unit="W/m²"
+          iconColor="#bd8b1c"
+          iconBackground="#fbf4df"
         />
       </div>
     </div>
