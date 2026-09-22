@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { AlertOctagon, AlertTriangle, Bird, CloudLightning, Flame, Gauge, Network, ShieldAlert, ThermometerSun, Vibrate, Zap, type LucideIcon } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
+import type { AlertIconName, AlertItem, AlertSeverity } from "./alert-demo";
 import { formatDate, formatDateTime, formatDecimal, formatInt, formatTime, formatVibration } from "./formatters";
 
 type Point = WorkbookTelemetry;
@@ -17,7 +19,17 @@ interface TelemetryPlotProps {
   digits?: number;
   sharedHoveredIdx?: number | null;
   onHoverChange?: (idx: number | null) => void;
+  alerts?: AlertItem[];
 }
+
+const alertIcons: Record<AlertIconName, LucideIcon> = {
+  overspeed: Gauge, temperature: ThermometerSun, vibration: Vibrate, voltage: Zap,
+  current: Zap, storm: CloudLightning, hail: CloudLightning, seismic: AlertTriangle,
+  bird: Bird, fire: Flame, brake: ShieldAlert, network: Network,
+};
+const alertColors: Record<AlertSeverity, string> = {
+  info: "#587387", low: "#63766d", medium: "#b87919", high: "#c76522", critical: "#bd3a2b",
+};
 
 export function TelemetrySvgPlot({
   points,
@@ -30,6 +42,7 @@ export function TelemetrySvgPlot({
   digits = 0,
   sharedHoveredIdx,
   onHoverChange,
+  alerts = [],
 }: TelemetryPlotProps) {
   const [internalHoveredIdx, setInternalHoveredIdx] = useState<number | null>(null);
   const hoveredIdx = sharedHoveredIdx !== undefined ? sharedHoveredIdx : internalHoveredIdx;
@@ -111,6 +124,18 @@ export function TelemetrySvgPlot({
       points.length - 1,
     ];
   }, [points.length]);
+
+  const visibleAlerts = useMemo(() => {
+    if (points.length < 2) return [];
+    const start = Date.parse(points[0].DataOra);
+    const end = Date.parse(points[points.length - 1].DataOra);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return [];
+    return alerts.flatMap((alert) => {
+      const timestamp = Date.parse(alert.occurredAt);
+      if (!Number.isFinite(timestamp) || timestamp < start || timestamp > end) return [];
+      return [{ alert, x: left + ((timestamp - start) / (end - start)) * plotWidth }];
+    });
+  }, [alerts, points, left, plotWidth]);
 
   return (
     <div className="flex flex-col w-full select-none">
@@ -280,6 +305,19 @@ export function TelemetrySvgPlot({
           })
         )}
 
+        {visibleAlerts.map(({ alert, x }, index) => {
+          const Icon = alertIcons[alert.icon];
+          const markerColor = alertColors[alert.severity];
+          const markerY = top + 8 + (index % 3) * 15;
+          return (
+            <g key={`${alert.code}-${alert.occurredAt}`} pointerEvents="none">
+              <line x1={x} x2={x} y1={markerY + 7} y2={bottom} stroke={markerColor} strokeWidth="1.4" strokeDasharray="3 3" opacity="0.85" />
+              <circle cx={x} cy={markerY} r="8" fill="#ffffff" stroke={markerColor} strokeWidth="1.8" />
+              <Icon x={x - 5} y={markerY - 5} width={10} height={10} color={markerColor} strokeWidth={2.4} />
+              <title>{`${alert.code} · ${alert.parameter} · ${formatDateTime(alert.occurredAt)}`}</title>
+            </g>
+          );
+        })}
         {/* Indicator vertical de inspecție la hover (Crosshair) */}
         {hoveredIdx != null && isDense && (
           <g pointerEvents="none">
@@ -356,3 +394,4 @@ export function TelemetrySvgPlot({
     </div>
   );
 }
+

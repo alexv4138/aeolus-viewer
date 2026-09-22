@@ -156,6 +156,36 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, onClos
             </div>
           </section>
         </div>
+
+        <section className="px-5 pb-5">
+          <div className="flex items-end justify-between gap-3 mb-2">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65716d]">Registru demonstrativ · ultimele zile</span>
+              <h3 className="m-0 mt-0.5 text-sm font-bold text-[#121a18]">Tabel evenimente și urgențe</h3>
+            </div>
+            <span className="text-[10px] text-[#65716d]">Date de simulare, comune tuturor turbinelor</span>
+          </div>
+          <div className="overflow-x-auto border border-[#dce3df]">
+            <table className="w-full min-w-[760px] border-collapse text-left text-[11px]">
+              <thead className="bg-[#f4f7f6] text-[10px] uppercase tracking-wide text-[#65716d]">
+                <tr><th className="px-3 py-2">Data / ora</th><th className="px-3 py-2">Turbina</th><th className="px-3 py-2">Eveniment</th><th className="px-3 py-2">Severitate</th><th className="px-3 py-2">Cod</th><th className="px-3 py-2">Acțiune recomandată</th></tr>
+              </thead>
+              <tbody>
+                {alerts.map((alert) => {
+                  const style = severityStyle[alert.severity];
+                  return <tr key={`table-${alert.code}-${alert.occurredAt}`} className="border-t border-[#edf0ee] hover:bg-[#fafcfb]">
+                    <td className="whitespace-nowrap px-3 py-2 font-mono text-[#53605b]">{formatDateTime(alert.occurredAt)}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-[#53605b]">{turbineName}</td>
+                    <td className="px-3 py-2"><span className="inline-flex items-center gap-1.5 font-semibold text-[#121a18]"><AlertIcon name={alert.icon} size={13} />{alert.parameter}</span><span className="block mt-0.5 text-[#65716d]">{alert.text}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2"><span className="px-1.5 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}>{style.label}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2 font-mono text-[#53605b]">{alert.code}</td>
+                    <td className="px-3 py-2 text-[#53605b]">{alert.action}</td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );

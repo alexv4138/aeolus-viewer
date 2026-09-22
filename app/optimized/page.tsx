@@ -872,6 +872,7 @@ export default function OptimizedDashboardPage() {
                   unit="W"
                   digits={0}
                   showBand={showRangeBand}
+                  alerts={alerts}
                   sharedHoveredIdx={sharedHoveredIdx}
                   onHoverChange={setSharedHoveredIdx}
                 />
@@ -940,6 +941,7 @@ export default function OptimizedDashboardPage() {
                   unit="m/s"
                   digits={1}
                   showBand={showRangeBand}
+                  alerts={alerts}
                   sharedHoveredIdx={sharedHoveredIdx}
                   onHoverChange={setSharedHoveredIdx}
                 />
@@ -1009,6 +1011,7 @@ export default function OptimizedDashboardPage() {
                 unit="kWh"
                 digits={1}
                 showBand={showRangeBand}
+                alerts={alerts}
                 sharedHoveredIdx={sharedHoveredIdx}
                 onHoverChange={setSharedHoveredIdx}
               />
@@ -1128,6 +1131,7 @@ export default function OptimizedDashboardPage() {
           turbineLocation={selectedTurbine.location}
           points={filteredPoints}
           showBand={showRangeBand}
+          alerts={alerts}
           onClose={() => setActiveModal(null)}
           onExportExcel={exportExcel}
         />
