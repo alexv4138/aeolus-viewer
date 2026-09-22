@@ -65,10 +65,9 @@ interface AlertHistoryModalProps {
 
 export function AlertHistoryModal({ alerts, turbineName, turbineLocation, paletteId, onClose }: AlertHistoryModalProps) {
   const severityStyle = ALERT_PALETTES[paletteId].colors;
-  const initialDate = alerts[0] ? dateKey(alerts[0].occurredAt) : "";
-  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [selectedDate, setSelectedDate] = useState("");
   const selectedEvents = useMemo(
-    () => alerts.filter((alert) => dateKey(alert.occurredAt) === selectedDate),
+    () => selectedDate ? alerts.filter((alert) => dateKey(alert.occurredAt) === selectedDate) : alerts,
     [alerts, selectedDate],
   );
   const calendarDays = useMemo(() => monthGrid(alerts[0]?.occurredAt ?? new Date().toISOString()), [alerts]);
@@ -89,7 +88,7 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, palett
           </button>
         </div>
 
-        <div className="grid gap-5 p-5 lg:grid-cols-[1.05fr_1fr]">
+        <div className="space-y-4 p-5">
           <section className="border border-[#dce3df] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="m-0 text-sm font-bold text-[#121a18] capitalize">{monthTitle}</h3>
@@ -124,64 +123,35 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, palett
               })}
             </div>
           </section>
-
-          <section className="border border-[#dce3df] p-4">
-            <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#edf0ee]">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#65716d]">Orele zilei selectate</span>
-                <h3 className="m-0 mt-0.5 text-sm font-bold text-[#121a18]">{selectedDate ? formatDate(selectedDate) : "Nicio dată"}</h3>
-              </div>
-              <span className="text-[10px] font-mono text-[#65716d]">{selectedEvents.length} evenimente</span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {selectedEvents.length ? selectedEvents.map((alert) => {
-                const style = severityStyle[alert.severity];
-                return (
-                  <article key={`${alert.code}-${alert.occurredAt}`} className="border-l-4 border border-[#edf0ee] p-3" style={{ borderLeftColor: style.color }}>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: style.color }}><AlertIcon name={alert.icon} size={13} /> {style.label} · {alert.code}</span>
-                      <time className="text-[10px] font-mono text-[#65716d]">{alert.occurredAt.slice(11, 16)}</time>
-                    </div>
-                    <strong className="block mt-1 text-xs text-[#121a18]">{alert.parameter} · {alert.status === "active" ? "Activă" : "Rezolvată"}</strong>
-                    <p className="m-0 mt-1 text-[11px] leading-snug text-[#53605b]">{alert.text}</p>
-                    <p className="m-0 mt-2 text-[10px] font-medium text-[#45504c]">Acțiune: {alert.action}</p>
-                  </article>
-                );
-              }) : <p className="py-8 text-center text-xs text-[#65716d]">Nu există evenimente în această zi.</p>}
-            </div>
-          </section>
-        </div>
-
-        <section className="px-5 pb-5">
-          <div className="flex items-end justify-between gap-3 mb-2">
+          <section>
+          <div className="mb-2 flex items-end justify-between gap-3">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#65716d]">Registru demonstrativ · ultimele zile</span>
-              <h3 className="m-0 mt-0.5 text-sm font-bold text-[#121a18]">Tabel evenimente și urgențe</h3>
+              <h3 className="m-0 mt-0.5 text-sm font-bold text-[#121a18]">{selectedDate ? `Evenimente · ${formatDate(selectedDate)}` : "Toate evenimentele și urgențele"}</h3>
             </div>
-            <span className="text-[10px] text-[#65716d]">Date de simulare, comune tuturor turbinelor</span>
+            <div className="flex items-center gap-3"><span className="text-[10px] text-[#65716d]">{selectedEvents.length} evenimente · demo</span>{selectedDate && <button type="button" onClick={() => setSelectedDate("")} className="text-[10px] font-semibold text-[#257b68] underline">Toate datele</button>}</div>
           </div>
-          <div className="overflow-x-auto border border-[#dce3df]">
+          <div className="max-h-[48vh] overflow-auto border border-[#dce3df]">
             <table className="w-full min-w-[760px] border-collapse text-left text-[11px]">
               <thead className="bg-[#f4f7f6] text-[10px] uppercase tracking-wide text-[#65716d]">
-                <tr><th className="px-3 py-2">Data / ora</th><th className="px-3 py-2">Turbina</th><th className="px-3 py-2">Eveniment</th><th className="px-3 py-2">Severitate</th><th className="px-3 py-2">Stare</th><th className="px-3 py-2">Cod</th><th className="px-3 py-2">Acțiune recomandată</th></tr>
+                <tr><th className="sticky top-0 bg-[#f4f7f6] px-3 py-2">Data / ora</th><th className="sticky top-0 bg-[#f4f7f6] px-3 py-2">Eveniment</th><th className="sticky top-0 bg-[#f4f7f6] px-3 py-2">Severitate</th><th className="sticky top-0 bg-[#f4f7f6] px-3 py-2">Valoare detectată</th><th className="sticky top-0 bg-[#f4f7f6] px-3 py-2">Stare / acțiune recomandată</th></tr>
               </thead>
               <tbody>
-                {alerts.map((alert) => {
+                {selectedEvents.map((alert) => {
                   const style = severityStyle[alert.severity];
                   return <tr key={`table-${alert.code}-${alert.occurredAt}`} className="border-t border-[#edf0ee] hover:bg-[#fafcfb]">
                     <td className="whitespace-nowrap px-3 py-2 font-mono text-[#53605b]">{formatDateTime(alert.occurredAt)}</td>
-                    <td className="whitespace-nowrap px-3 py-2 text-[#53605b]">{turbineName}</td>
-                    <td className="px-3 py-2"><span className="inline-flex items-center gap-1.5 font-semibold text-[#121a18]"><AlertIcon name={alert.icon} size={13} />{alert.parameter}</span><span className="block mt-0.5 text-[#65716d]">{alert.text}</span></td>
-                    <td className="whitespace-nowrap px-3 py-2"><span className="px-1.5 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}>{style.label}</span></td>
-                    <td className="whitespace-nowrap px-3 py-2 text-[#53605b]">{alert.status === "active" ? "Activă" : "Rezolvată"}</td>
-                    <td className="whitespace-nowrap px-3 py-2 font-mono text-[#53605b]">{alert.code}</td>
-                    <td className="px-3 py-2 text-[#53605b]">{alert.action}</td>
+                    <td className="px-3 py-2"><span className="inline-flex items-center gap-1.5 font-semibold text-[#121a18]"><AlertIcon name={alert.icon} size={13} />{alert.parameter}</span><span className="block mt-0.5 text-[#65716d]">{alert.code} · {alert.text}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2"><span className="inline-flex items-center gap-1.5 px-1.5 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}><i className="h-2 w-2 rounded-full" style={{ backgroundColor: style.color }} />{style.label}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2 font-mono font-semibold" style={{ color: style.color }}>{alert.reading ?? "—"}</td>
+                    <td className="min-w-[220px] px-3 py-2 text-[#53605b]"><span className="font-semibold">{alert.status === "active" ? "Activă" : "Rezolvată"}</span><span className="block mt-0.5">{alert.action}</span></td>
                   </tr>;
                 })}
               </tbody>
             </table>
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

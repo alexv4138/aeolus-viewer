@@ -13,9 +13,19 @@ export type AlertRule = {
 };
 export type AlertItem = Pick<AlertRule, "code" | "parameter" | "severity" | "action" | "icon"> & {
   text: string;
+  reading?: string;
   occurredAt: string;
   status: "active" | "resolved";
   isDemoActive?: boolean;
+};
+
+const DEMO_READINGS: Record<string, string> = {
+  "ERR-001": "1.850 RPM", "ERR-002": "92 °C", "ERR-003": "8,4 mm/s", "ERR-004": "258 V",
+  "ERR-005": "18,6 A", "ERR-006": "184 V", "ERR-007": "1,42 kNm", "ERR-008": "0% semnal",
+  "ERR-009": "0 m/s", "ERR-010": "0 RPM", "ERR-011": "86 dB", "ERR-012": "48 Hz",
+  "ERR-013": "Timp frânare: 4,8 s", "ERR-014": "52 °C", "ERR-015": "986 hPa", "ERR-016": "1.320 W/m²",
+  "ERR-017": "Semnal absent", "ERR-018": "91 °C", "ERR-019": "14% abatere", "ERR-020": "Frână activă · 0 RPM",
+  "ERR-021": "10,8 V", "ERR-022": "E-STOP activ",
 };
 
 // Notification recipients are intentionally omitted; this is a client-visible demo catalog.
@@ -57,6 +67,7 @@ export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   const resolved = resolvedRules.map((rule, index) => ({
     ...rule,
     text: rule.description,
+    reading: DEMO_READINGS[rule.code],
     occurredAt: atOffset(latest.DataOra, -23 + index),
     status: "resolved" as const,
   }));
@@ -64,6 +75,7 @@ export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   const active = {
     ...activeRule,
     text: activeRule.description,
+    reading: DEMO_READINGS[activeRule.code],
     occurredAt: atOffset(latest.DataOra, -0.5),
     status: "active" as const,
     isDemoActive: true,

@@ -24,7 +24,11 @@ export function AlertPalettePreview({ value, onChange }: { value: AlertPaletteId
       <span className="mt-1 block text-[9px] leading-snug text-[#65716d]">Alege o alertă demo; previzualizarea nu schimbă starea turbinei.</span>
       <label className="mt-2 block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Alertă demonstrativă
         <select value={selectedCode} onChange={(event) => setSelectedCode(event.target.value)} className="mt-1 block w-full border border-[#dce3df] bg-white px-2 py-1.5 text-[10px] font-medium normal-case tracking-normal text-[#28332f]">
-          {ALERT_CATALOG.map((alert) => <option key={alert.code} value={alert.code}>{alert.code} · {alert.parameter}</option>)}
+          {ALERT_CATALOG.map((alert) => {
+            const severity = colors[alert.severity];
+            const marker = alert.severity === "critical" ? "🟥" : alert.severity === "high" ? "🟠" : alert.severity === "medium" ? "🟡" : alert.severity === "low" ? "🟤" : "🔵";
+            return <option key={alert.code} value={alert.code} style={{ color: severity.color }}>{marker} {severity.label} · {alert.code} · {alert.parameter}</option>;
+          })}
         </select>
       </label>
       <span className="mt-2 block border p-2.5" style={{ borderColor: alertStyle.color, backgroundColor: alertStyle.soft }}>
