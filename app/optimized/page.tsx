@@ -42,10 +42,8 @@ import { TelemetrySvgPlot } from "@/components/dashboard-opt/telemetry-svg-plot"
 import { TimeRangeToolbar } from "@/components/dashboard-opt/time-range-toolbar";
 import { TurbineKpiGrid } from "@/components/dashboard-opt/turbine-kpi-grid";
 import { WeatherColumn } from "@/components/dashboard-opt/weather-column";
-import {
-  AlarmColumn,
-  type AlertItem,
-} from "@/components/dashboard-opt/alarm-column";
+import { AlarmColumn } from "@/components/dashboard-opt/alarm-column";
+import { getDemoAlertHistory, type AlertItem } from "@/components/dashboard-opt/alert-demo";
 import { ChartAnalysisModal } from "@/components/dashboard-opt/chart-analysis-modal";
 import { FleetOverviewTable } from "@/components/dashboard-opt/fleet-overview-table";
 import { RoiCalculator } from "@/components/dashboard-opt/roi-calculator";
@@ -293,77 +291,22 @@ export default function OptimizedDashboardPage() {
 
   const latest = allPoints[allPoints.length - 1] ?? defaultPoint;
 
-  // Alarme sintetizate conform ISA-18.2
-  const alerts: AlertItem[] = useMemo(() => {
+  // Alertele detectate din telemetrie rămân distincte de istoricul demonstrativ.
+  const telemetryAlerts = useMemo<AlertItem[]>(() => {
+    const occurredAt = latest.DataOra;
     const list: AlertItem[] = [];
-    const timeStr = formatDateTime(latest.DataOra);
-
-    if (Number(latest.Turatie) > 120) {
-      list.push({
-        time: timeStr,
-        severity: "critical",
-        parameter: "Supraturație Rotor",
-        text: `Turația a atins ${formatInt(latest.Turatie)} RPM, depășind pragul critic de 120 RPM.`,
-      });
-    }
-
-    if (Number(latest.Vibratii) > 0.8) {
-      list.push({
-        time: timeStr,
-        severity: "warning",
-        parameter: "Vibrație Mecanică Ridicată",
-        text: `Nivel de vibrații la ${formatVibration(latest.Vibratii)} G pe axul generatorului.`,
-      });
-    }
-
-    if (Number(latest.TempInfas) > 65) {
-      list.push({
-        time: timeStr,
-        severity: "warning",
-        parameter: "Temperatură Bobinaj",
-        text: `Temperatura statorului este ${formatInt(latest.TempInfas)} °C, peste limita recomandată de 65 °C.`,
-      });
-    }
-
-    if (latest.Alarma) {
-      list.push({
-        time: timeStr,
-        severity: "warning",
-        parameter: "Senzor Alarma Activ",
-        text: "Semnal general de alarmă recepționat de la controllerul turbinei.",
-      });
-    }
-
-    if (Number(latest.Putere) === 0 && Number(latest.Turatie) > 0) {
-      list.push({
-        time: timeStr,
-        severity: "warning",
-        parameter: "Producție indisponibilă",
-        text: "Rotorul este în mișcare, dar puterea raportată este zero. Verificați generatorul și convertorul.",
-      });
-    }
-
-    if (Number(latest.Voltaj) > 0 && Number(latest.Voltaj) < 24) {
-      list.push({
-        time: timeStr,
-        severity: "critical",
-        parameter: "Tensiune scăzută",
-        text: `Tensiunea raportată este ${formatDecimal(latest.Voltaj, 1)} V. Se recomandă verificarea alimentării și a convertorului.`,
-      });
-    }
-
-    if (list.length === 0) {
-      list.push({
-        time: timeStr,
-        severity: "info",
-        parameter: "Stare Sistem",
-        text: "Toate sistemele turbinei funcționează în parametri nominali.",
-      });
-    }
-
+    if (Number(latest.Turatie) > 120) list.push({ code: "LIVE-001", occurredAt, severity: "critical", parameter: "Supraturație rotor", text: `Turația a atins ${formatInt(latest.Turatie)} RPM.`, action: "Activare frână și inspecție mecanică.", icon: "overspeed" });
+    if (Number(latest.Vibratii) > 0.8) list.push({ code: "LIVE-003", occurredAt, severity: "high", parameter: "Vibrații mecanice ridicate", text: `Vibrații de ${formatVibration(latest.Vibratii)} G pe axul generatorului.`, action: "Verificare echilibrare rotor și rulmenți.", icon: "vibration" });
+    if (Number(latest.TempInfas) > 65) list.push({ code: "LIVE-018", occurredAt, severity: "high", parameter: "Temperatură generator ridicată", text: `Temperatura generatorului este ${formatInt(latest.TempInfas)} °C.`, action: "Reducere putere și verificare ventilație.", icon: "temperature" });
+    if (Number(latest.Voltaj) > 0 && Number(latest.Voltaj) < 24) list.push({ code: "LIVE-006", occurredAt, severity: "critical", parameter: "Tensiune scăzută", text: `Tensiunea raportată este ${formatDecimal(latest.Voltaj, 1)} V.`, action: "Verificare alimentare și convertor.", icon: "voltage" });
     return list;
   }, [latest]);
 
+  // Catalog demonstrativ reutilizat pentru fiecare turbină în beta.
+  const alerts = useMemo(
+    () => [...telemetryAlerts, ...getDemoAlertHistory(latest)].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt)),
+    [latest, telemetryAlerts],
+  );
   // Export PDF A4
   function exportPdf(
     title: string,
@@ -1074,7 +1017,7 @@ export default function OptimizedDashboardPage() {
 
           {/* Coloana 3: Stare & Alarme conform ISA-18.2 */}
           <aside className="flex flex-col gap-4">
-            <AlarmColumn latest={latest} alerts={alerts} />
+            <AlarmColumn latest={latest} alerts={alerts} turbineName={selectedTurbine.id} turbineLocation={selectedTurbine.location} />
           </aside>
         </section>
 
@@ -1192,3 +1135,4 @@ export default function OptimizedDashboardPage() {
     </main>
   );
 }
+
