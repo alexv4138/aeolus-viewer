@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import type { AlertItem } from "./alert-demo";
-import { ALERT_CATALOG, severityRank } from "./alert-demo";
+import { ALERT_CATALOG, severityRank, type AlertSeverity } from "./alert-demo";
 import { AlertHistoryModal, AlertIcon } from "./alert-history-modal";
 import { AlertLegendModal } from "./alert-legend-modal";
 import { AlertPalettePreview } from "./alert-palette-preview";
@@ -40,7 +40,8 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
   const activeAlert = activeAlerts[0];
   const hasDemoActiveAlert = activeAlerts.some((alert) => alert.isDemoActive);
   const latestResolved = alerts.find((alert) => alert.status === "resolved" && Date.parse(latest.DataOra) - Date.parse(alert.occurredAt) <= 48 * 60 * 60 * 1000);
-  const recentAlerts = alerts.slice(0, 3);
+  const recentAlerts = alerts.slice(0, 8);
+  const severityLevels: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
   const state = activeAlerts.some((alert) => alert.severity === "critical") ? "NEFUNCȚIONAL" : activeAlerts.some((alert) => severityRank[alert.severity] >= severityRank.medium) ? "ÎNCETINIT" : "NOMINAL";
   const statusColor = state === "NEFUNCȚIONAL" ? severityMeta.critical.color : state === "ÎNCETINIT" ? severityMeta.high.color : NORMAL_STATE_COLOR;
   const emergencyColor = activeAlert ? severityMeta[activeAlert.severity].color : latestResolved ? "#647078" : NORMAL_STATE_COLOR;
@@ -92,13 +93,16 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
         </div>
 
         <div className="mt-4 pt-3 border-t border-[#edf0ee]">
-          <div className="mb-2"><span className="text-[10px] font-bold text-[#65716d] uppercase tracking-wider">Legendă evenimente</span></div>
-          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-            {ALERT_CATALOG.map((rule) => {
-              const meta = severityMeta[rule.severity];
-              return <button type="button" onClick={() => setIsLegendOpen(true)} key={rule.code} title={`${rule.code} · ${rule.parameter}`} className="flex min-h-12 items-center gap-1.5 border px-2 py-1.5 text-left transition-colors hover:brightness-[0.97]" style={{ color: meta.color, backgroundColor: meta.soft, borderColor: `${meta.color}55` }}><AlertIcon name={rule.icon} size={14} /><span className="min-w-0"><strong className="block font-semibold truncate">{rule.parameter}</strong><span className="block text-[9px] font-bold uppercase tracking-wide">{meta.label}</span></span></button>;
-            })}
-          </div>
+          <button type="button" onClick={() => setIsLegendOpen(true)} className="w-full text-left hover:opacity-80" aria-label="Deschide legenda completă a erorilor">
+            <span className="block text-[10px] font-bold text-[#65716d] uppercase tracking-wider">Legendă evenimente</span>
+            <span className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-1.5">
+              {severityLevels.map((level) => {
+                const meta = severityMeta[level];
+                return <span key={level} className="inline-flex items-center gap-1.5 text-[9px] font-bold" style={{ color: meta.color }}><i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: meta.color }} />{meta.label}</span>;
+              })}
+            </span>
+            <span className="mt-2 block text-[9px] text-[#65716d]">Click pentru legenda completă a erorilor</span>
+          </button>
         </div>
       </div>
       {isHistoryOpen && <AlertHistoryModal alerts={alerts} turbineName={turbineName} turbineLocation={turbineLocation} paletteId={paletteId} onClose={() => setIsHistoryOpen(false)} />}

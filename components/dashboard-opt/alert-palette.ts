@@ -9,7 +9,7 @@ export const ALERT_PALETTES: Record<AlertPaletteId, { name: string; colors: Seve
     colors: {
       critical: { label: "CRITIC", color: "#D00000", soft: "#FFF3F2" },
       high: { label: "RIDICAT", color: "#F57C00", soft: "#FFF2E4" },
-      medium: { label: "MEDIU", color: "#A66B00", soft: "#FFF6D8" },
+      medium: { label: "MEDIU", color: "#A88700", soft: "#FFF6C9" },
       low: { label: "SCĂZUT", color: "#89634D", soft: "#F3EAE3" },
       info: { label: "INFO", color: "#2878A5", soft: "#EAF4F9" },
     },
@@ -19,7 +19,7 @@ export const ALERT_PALETTES: Record<AlertPaletteId, { name: string; colors: Seve
     colors: {
       critical: { label: "CRITIC", color: "#C62828", soft: "#FBEFED" },
       high: { label: "RIDICAT", color: "#D96B16", soft: "#FAEFE6" },
-      medium: { label: "MEDIU", color: "#927000", soft: "#F7F1DD" },
+      medium: { label: "MEDIU", color: "#A18418", soft: "#F8F1D2" },
       low: { label: "SCĂZUT", color: "#826650", soft: "#F1EBE6" },
       info: { label: "INFO", color: "#356C8A", soft: "#EAF1F5" },
     },

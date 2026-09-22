@@ -52,14 +52,23 @@ function atOffset(latestIso: string, hours: number) {
 }
 
 export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
-  const events: Array<[string, number, boolean?]> = [
-    ["ERR-014", -148], ["ERR-008", -119], ["ERR-015", -94],
-    ["ERR-004", -70], ["ERR-003", -47], ["ERR-001", -25], ["ERR-004", -4, true],
-  ];
-  return events.map(([code, offset, isDemoActive]) => {
-    const rule = ALERT_CATALOG.find((item) => item.code === code)!;
-    return { ...rule, text: rule.description, occurredAt: atOffset(latest.DataOra, offset), status: isDemoActive ? "active" as const : "resolved" as const, isDemoActive };
-  }).sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
+  const activeCode = "ERR-004";
+  const resolvedRules = ALERT_CATALOG.filter((rule) => rule.code !== activeCode);
+  const resolved = resolvedRules.map((rule, index) => ({
+    ...rule,
+    text: rule.description,
+    occurredAt: atOffset(latest.DataOra, -23 + index),
+    status: "resolved" as const,
+  }));
+  const activeRule = ALERT_CATALOG.find((rule) => rule.code === activeCode)!;
+  const active = {
+    ...activeRule,
+    text: activeRule.description,
+    occurredAt: atOffset(latest.DataOra, -0.5),
+    status: "active" as const,
+    isDemoActive: true,
+  };
+  return [...resolved, active].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
 }
 
 export const severityRank: Record<AlertSeverity, number> = { info: 0, low: 1, medium: 2, high: 3, critical: 4 };
