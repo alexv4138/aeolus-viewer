@@ -107,7 +107,7 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, select
               <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Descriere / cauză posibilă</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.description}</dd></div>
               <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Acțiune automată / recomandată</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.action}</dd></div>
               <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Alerte & notificări recomandate</dt><dd className="m-0 mt-1 text-[#28332f]">{selectedRule.notifications}</dd></div>
-              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Stare demo</dt><dd className="m-0 mt-1 text-[#28332f]">{current ? `Eveniment în jurnal · ${formatDateTime(current.occurredAt)}` : "Monitorizat · fără eveniment demo în interval"}</dd></div>
+              <div><dt className="text-[10px] font-bold uppercase tracking-wide text-[#65716d]">Stare demo</dt><dd className="m-0 mt-1 text-[#28332f]">{current ? `${current.status === "active" ? "Activă" : "Rezolvată"} · ${formatDateTime(current.occurredAt)}` : "Monitorizat · fără eveniment demo în interval"}</dd></div>
             </dl>
           </section>;
         })()}
@@ -165,7 +165,7 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, select
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: style.color }}><AlertIcon name={alert.icon} size={13} /> {style.label} · {alert.code}</span>
                       <time className="text-[10px] font-mono text-[#65716d]">{alert.occurredAt.slice(11, 16)}</time>
                     </div>
-                    <strong className="block mt-1 text-xs text-[#121a18]">{alert.parameter}</strong>
+                    <strong className="block mt-1 text-xs text-[#121a18]">{alert.parameter} · {alert.status === "active" ? "Activă" : "Rezolvată"}</strong>
                     <p className="m-0 mt-1 text-[11px] leading-snug text-[#53605b]">{alert.text}</p>
                     <p className="m-0 mt-2 text-[10px] font-medium text-[#45504c]">Acțiune: {alert.action}</p>
                   </article>
@@ -186,7 +186,7 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, select
           <div className="overflow-x-auto border border-[#dce3df]">
             <table className="w-full min-w-[760px] border-collapse text-left text-[11px]">
               <thead className="bg-[#f4f7f6] text-[10px] uppercase tracking-wide text-[#65716d]">
-                <tr><th className="px-3 py-2">Data / ora</th><th className="px-3 py-2">Turbina</th><th className="px-3 py-2">Eveniment</th><th className="px-3 py-2">Severitate</th><th className="px-3 py-2">Cod</th><th className="px-3 py-2">Acțiune recomandată</th></tr>
+                <tr><th className="px-3 py-2">Data / ora</th><th className="px-3 py-2">Turbina</th><th className="px-3 py-2">Eveniment</th><th className="px-3 py-2">Severitate</th><th className="px-3 py-2">Stare</th><th className="px-3 py-2">Cod</th><th className="px-3 py-2">Acțiune recomandată</th></tr>
               </thead>
               <tbody>
                 {alerts.map((alert) => {
@@ -196,6 +196,7 @@ export function AlertHistoryModal({ alerts, turbineName, turbineLocation, select
                     <td className="whitespace-nowrap px-3 py-2 text-[#53605b]">{turbineName}</td>
                     <td className="px-3 py-2"><span className="inline-flex items-center gap-1.5 font-semibold text-[#121a18]"><AlertIcon name={alert.icon} size={13} />{alert.parameter}</span><span className="block mt-0.5 text-[#65716d]">{alert.text}</span></td>
                     <td className="whitespace-nowrap px-3 py-2"><span className="px-1.5 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}>{style.label}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2 text-[#53605b]">{alert.status === "active" ? "Activă" : "Rezolvată"}</td>
                     <td className="whitespace-nowrap px-3 py-2 font-mono text-[#53605b]">{alert.code}</td>
                     <td className="px-3 py-2 text-[#53605b]">{alert.action}</td>
                   </tr>;

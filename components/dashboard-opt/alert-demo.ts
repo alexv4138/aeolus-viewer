@@ -11,8 +11,10 @@ export type AlertRule = {
   notifications: string;
   icon: AlertIconName;
 };
-export type AlertItem = AlertRule & {
+export type AlertItem = Pick<AlertRule, "code" | "parameter" | "severity" | "action" | "icon"> & {
+  text: string;
   occurredAt: string;
+  status: "active" | "resolved";
   isDemoActive?: boolean;
 };
 
@@ -56,7 +58,7 @@ export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   ];
   return events.map(([code, offset, isDemoActive]) => {
     const rule = ALERT_CATALOG.find((item) => item.code === code)!;
-    return { ...rule, occurredAt: atOffset(latest.DataOra, offset), isDemoActive };
+    return { ...rule, text: rule.description, occurredAt: atOffset(latest.DataOra, offset), status: isDemoActive ? "active" as const : "resolved" as const, isDemoActive };
   }).sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
 }
 

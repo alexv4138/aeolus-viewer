@@ -295,10 +295,10 @@ export default function OptimizedDashboardPage() {
   const telemetryAlerts = useMemo<AlertItem[]>(() => {
     const occurredAt = latest.DataOra;
     const list: AlertItem[] = [];
-    if (Number(latest.Turatie) > 120) list.push({ code: "LIVE-001", occurredAt, severity: "critical", parameter: "Supraturație rotor", text: `Turația a atins ${formatInt(latest.Turatie)} RPM.`, action: "Activare frână și inspecție mecanică.", icon: "overspeed" });
-    if (Number(latest.Vibratii) > 0.8) list.push({ code: "LIVE-003", occurredAt, severity: "high", parameter: "Vibrații mecanice ridicate", text: `Vibrații de ${formatVibration(latest.Vibratii)} G pe axul generatorului.`, action: "Verificare echilibrare rotor și rulmenți.", icon: "vibration" });
-    if (Number(latest.TempInfas) > 65) list.push({ code: "LIVE-018", occurredAt, severity: "high", parameter: "Temperatură generator ridicată", text: `Temperatura generatorului este ${formatInt(latest.TempInfas)} °C.`, action: "Reducere putere și verificare ventilație.", icon: "temperature" });
-    if (Number(latest.Voltaj) > 0 && Number(latest.Voltaj) < 24) list.push({ code: "LIVE-006", occurredAt, severity: "critical", parameter: "Tensiune scăzută", text: `Tensiunea raportată este ${formatDecimal(latest.Voltaj, 1)} V.`, action: "Verificare alimentare și convertor.", icon: "voltage" });
+    if (Number(latest.Turatie) > 120) list.push({ code: "LIVE-001", occurredAt, status: "active", severity: "critical", parameter: "Supraturație rotor", text: `Turația a atins ${formatInt(latest.Turatie)} RPM.`, action: "Activare frână și inspecție mecanică.", icon: "overspeed" });
+    if (Number(latest.Vibratii) > 0.8) list.push({ code: "LIVE-003", occurredAt, status: "active", severity: "high", parameter: "Vibrații mecanice ridicate", text: `Vibrații de ${formatVibration(latest.Vibratii)} G pe axul generatorului.`, action: "Verificare echilibrare rotor și rulmenți.", icon: "vibration" });
+    if (Number(latest.TempInfas) > 65) list.push({ code: "LIVE-018", occurredAt, status: "active", severity: "high", parameter: "Temperatură generator ridicată", text: `Temperatura generatorului este ${formatInt(latest.TempInfas)} °C.`, action: "Reducere putere și verificare ventilație.", icon: "temperature" });
+    if (Number(latest.Voltaj) > 0 && Number(latest.Voltaj) < 24) list.push({ code: "LIVE-006", occurredAt, status: "active", severity: "critical", parameter: "Tensiune scăzută", text: `Tensiunea raportată este ${formatDecimal(latest.Voltaj, 1)} V.`, action: "Verificare alimentare și convertor.", icon: "voltage" });
     return list;
   }, [latest]);
 
