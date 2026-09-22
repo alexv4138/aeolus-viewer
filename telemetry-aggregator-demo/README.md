@@ -4,7 +4,7 @@
 
 `src/simulator.mjs` este un generator JavaScript pur, utilizabil și în browser. La prima pornire creează **21 de zile anterioare ceasului sistemului**, la pas de **30 de minute**. `scripts/generate.mjs --watch` continuă **nelimitat**, verifică timpul sistemului în fiecare minut și adaugă numai citirile noi. După repornire completează automat fiecare interval lipsă. Fișierul pentru site păstrează o **fereastră mobilă de 21 de zile** pentru a nu încetini graficele; arhiva completă, fără limită de 21 de zile, este în `data/simulated-telemetry.archive.jsonl` (locală, nepublică).
 
-Fiecare rând conține câmpurile de telemetrie și un câmp `alerts` cu evenimentele aferente timestamp-ului. Scenariul de rafală crește vântul și puterea, apoi declanșează `ERR-001` când turația liberă ar depăși 120 RPM; frânarea limitează turația și reduce puterea. Aceste praguri și relații sunt **doar pentru demonstrație**, nu limite reale de protecție.
+Fiecare rând conține câmpurile de telemetrie și un câmp `alerts` cu evenimentele aferente timestamp-ului. Toate cele 22 coduri din catalog sunt demonstrate repetat; fiecare turbină primește un eveniment la 6 ore. Valorile legate de eveniment se modifică împreună (ex. rafală → supraturație → frânare/limitare putere). Aceste praguri și relații sunt **doar pentru demonstrație**, nu limite reale de protecție.
 
 Generare locală pentru site:
 

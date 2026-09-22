@@ -67,7 +67,7 @@ export async function POST(request: Request) {
   const rows = (payload as { rows?: unknown })?.rows;
   if (!Array.isArray(rows) || rows.length < 1 || rows.length > 50 || !rows.every(validRow)) return Response.json({ error: "Expected 1–50 valid telemetry rows" }, { status: 400, headers: NO_STORE });
   await ensureTable();
-  await env.DB.batch(rows.map((row: WorkbookTelemetry) => env.DB.prepare("INSERT OR IGNORE INTO telemetry_ingest (location_id, data_ora, payload) VALUES (?, ?, ?)").bind(row.IDLocatie, row.DataOra, JSON.stringify(row))));
+  await env.DB.batch(rows.map((row: WorkbookTelemetry) => env.DB.prepare("INSERT INTO telemetry_ingest (location_id, data_ora, payload) VALUES (?, ?, ?) ON CONFLICT(location_id, data_ora) DO UPDATE SET payload=excluded.payload").bind(row.IDLocatie, row.DataOra, JSON.stringify(row))));
   return Response.json({ accepted: rows.length }, { status: 202, headers: NO_STORE });
 }
 
