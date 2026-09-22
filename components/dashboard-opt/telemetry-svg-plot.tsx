@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { AlertOctagon, AlertTriangle, Bird, CloudLightning, Flame, Gauge, Network, ShieldAlert, ThermometerSun, Vibrate, Zap, type LucideIcon } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
-import type { AlertIconName, AlertItem, AlertSeverity } from "./alert-demo";
+import type { AlertItem, AlertSeverity } from "./alert-demo";
 import { ALERT_PALETTES } from "./alert-palette";
+import { ALERT_ICON_COMPONENTS } from "./alert-icons";
 import { formatDate, formatDateTime, formatDecimal, formatInt, formatTime, formatVibration } from "./formatters";
 
 type Point = WorkbookTelemetry;
@@ -23,11 +23,6 @@ interface TelemetryPlotProps {
   alerts?: AlertItem[];
 }
 
-const alertIcons: Record<AlertIconName, LucideIcon> = {
-  overspeed: Gauge, temperature: ThermometerSun, vibration: Vibrate, voltage: Zap,
-  current: Zap, storm: CloudLightning, hail: CloudLightning, seismic: AlertTriangle,
-  bird: Bird, fire: Flame, brake: ShieldAlert, network: Network,
-};
 const alertColors: Record<AlertSeverity, string> = Object.fromEntries(
   Object.entries(ALERT_PALETTES.contrast.colors).map(([severity, style]) => [severity, style.color]),
 ) as Record<AlertSeverity, string>;
@@ -270,7 +265,7 @@ export function TelemetrySvgPlot({
         )}
 
         {visibleAlerts.map(({ alert, x }, index) => {
-          const Icon = alertIcons[alert.icon];
+          const Icon = ALERT_ICON_COMPONENTS[alert.icon];
           const markerColor = alertColors[alert.severity];
           const markerY = top + 8 + (index % 3) * 15;
           return (

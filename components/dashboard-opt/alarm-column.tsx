@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import {
   AlertOctagon,
   Bell,
-  ShieldCheck,
 } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import type { AlertItem } from "./alert-demo";
@@ -13,6 +12,7 @@ import { AlertHistoryModal, AlertIcon } from "./alert-history-modal";
 import { AlertLegendModal } from "./alert-legend-modal";
 import { AlertPalettePreview } from "./alert-palette-preview";
 import { ALERT_PALETTES, NORMAL_STATE_COLOR, type AlertPaletteId } from "./alert-palette";
+import { TurbineStateIcon } from "./turbine-state-icon";
 
 type Point = WorkbookTelemetry;
 export type { AlertItem } from "./alert-demo";
@@ -70,7 +70,7 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
 
         <div className={`mb-2 border p-2.5 ${hasDemoActiveAlert && flashEnabled ? "animate-[pulse_2.6s_ease-in-out_infinite]" : ""}`} style={{ borderColor: emergencyColor, backgroundColor: activeAlert ? severityMeta[activeAlert.severity].soft : "#f7faf9" }}>
           <div className="flex items-start gap-2 border-b border-black/10 pb-2">
-            <ShieldCheck size={17} className="mt-0.5 shrink-0" color={statusColor} />
+            <TurbineStateIcon state={state} color={statusColor} />
             <span className="min-w-0"><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Stare turbină</span><strong className="text-xs" style={{ color: statusColor }}>{state}</strong></span>
           </div>
           <button type="button" onClick={() => setIsHistoryOpen(true)} className="mt-2 flex w-full items-start gap-2 text-left">

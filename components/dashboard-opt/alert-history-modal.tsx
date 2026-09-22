@@ -1,41 +1,15 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import {
-  AlertOctagon,
-  AlertTriangle,
-  Bird,
-  CircleAlert,
-  CloudLightning,
-  Flame,
-  Gauge,
-  Network,
-  ShieldAlert,
-  ThermometerSun,
-  Vibrate,
-  X,
-  Zap,
-} from "lucide-react";
+import { X } from "lucide-react";
 import type { AlertIconName, AlertItem } from "./alert-demo";
 import { severityRank } from "./alert-demo";
 import { formatDate, formatDateTime } from "./formatters";
 import { ALERT_PALETTES, type AlertPaletteId } from "./alert-palette";
+import { ALERT_ICON_COMPONENTS } from "./alert-icons";
 
 export function AlertIcon({ name, size = 14 }: { name: AlertIconName; size?: number }) {
-  const Icon = {
-    overspeed: Gauge,
-    temperature: ThermometerSun,
-    vibration: Vibrate,
-    voltage: Zap,
-    current: Zap,
-    storm: CloudLightning,
-    hail: CloudLightning,
-    seismic: CircleAlert,
-    bird: Bird,
-    fire: Flame,
-    brake: ShieldAlert,
-    network: Network,
-  }[name];
+  const Icon = ALERT_ICON_COMPONENTS[name];
   return <Icon size={size} />;
 }
 

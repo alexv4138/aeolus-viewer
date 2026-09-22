@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { CircleHelp, X, ShieldCheck, AlertTriangle } from "lucide-react";
+import { CircleHelp, X, AlertTriangle } from "lucide-react";
 import { ALERT_PALETTES, NORMAL_STATE_COLOR, type AlertPaletteId } from "./alert-palette";
 import { ALERT_CATALOG, DEMO_ALERT_READINGS, type AlertSeverity } from "./alert-demo";
 import { AlertIcon } from "./alert-history-modal";
+import { TurbineStateIcon, type TurbineState } from "./turbine-state-icon";
 
 const levels: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
 
@@ -14,7 +15,7 @@ export function AlertPalettePreview({ value, onChange }: { value: AlertPaletteId
   const selectedAlert = ALERT_CATALOG.find((alert) => alert.code === selectedCode) ?? ALERT_CATALOG[0];
   const colors = ALERT_PALETTES[value].colors;
   const alertStyle = colors[selectedAlert.severity];
-  const turbineState = selectedAlert.severity === "critical" ? "NEFUNCȚIONAL" : ["high", "medium"].includes(selectedAlert.severity) ? "ÎNCETINIT" : "NOMINAL";
+  const turbineState: TurbineState = selectedAlert.severity === "critical" ? "NEFUNCȚIONAL" : ["high", "medium"].includes(selectedAlert.severity) ? "ÎNCETINIT" : "NOMINAL";
   const stateColor = turbineState === "NEFUNCȚIONAL" ? colors.critical.color : turbineState === "ÎNCETINIT" ? colors.high.color : NORMAL_STATE_COLOR;
 
   return <span className="relative inline-flex">
@@ -32,7 +33,7 @@ export function AlertPalettePreview({ value, onChange }: { value: AlertPaletteId
         </select>
       </label>
       <span className="mt-2 block border p-2.5" style={{ borderColor: alertStyle.color, backgroundColor: alertStyle.soft }}>
-        <span className="flex items-start gap-2 border-b border-black/10 pb-2"><ShieldCheck size={17} className="mt-0.5 shrink-0" color={stateColor} /><span><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Stare turbină</span><strong className="text-[11px]" style={{ color: stateColor }}>{turbineState}</strong></span></span>
+        <span className="flex items-start gap-2 border-b border-black/10 pb-2"><TurbineStateIcon state={turbineState} color={stateColor} /><span><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Stare turbină</span><strong className="text-[11px]" style={{ color: stateColor }}>{turbineState}</strong></span></span>
         <span className="mt-2 flex items-start gap-2"><AlertTriangle size={15} className="mt-0.5 shrink-0" style={{ color: alertStyle.color }} /><span className="min-w-0"><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Urgență · demo</span><strong className="block text-[10px] leading-snug" style={{ color: alertStyle.color }}>{selectedAlert.parameter}</strong><span className="mt-1 inline-flex items-center gap-1 text-[8px] font-bold uppercase" style={{ color: alertStyle.color }}><AlertIcon name={selectedAlert.icon} size={10} />{alertStyle.label} · {selectedAlert.code}</span></span></span>
         <span className="ml-6 mt-1 block text-[9px] font-mono font-semibold text-[#28332f]">Valoare detectată: {DEMO_ALERT_READINGS[selectedAlert.code] ?? "—"}</span>
         <span className="ml-6 mt-1 block text-[9px] leading-snug text-[#53605b]"><strong>Acțiune recomandată:</strong> {selectedAlert.action}</span>
