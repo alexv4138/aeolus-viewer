@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { BookOpen, X } from "lucide-react";
 import { ALERT_CATALOG, type AlertRule, type AlertSeverity } from "./alert-demo";
 import { AlertIcon } from "./alert-history-modal";
 import { ALERT_PALETTES, type AlertPaletteId } from "./alert-palette";
+
+const SEVERITY_ORDER: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
 
 function LegendCard({ rule, paletteId }: { rule: AlertRule; paletteId: AlertPaletteId }) {
   const severity = ALERT_PALETTES[paletteId].colors[rule.severity];
@@ -25,6 +27,11 @@ function LegendCard({ rule, paletteId }: { rule: AlertRule; paletteId: AlertPale
 }
 
 export function AlertLegendModal({ paletteId, onClose }: { paletteId: AlertPaletteId; onClose: () => void }) {
+  const [selectedSeverity, setSelectedSeverity] = useState<AlertSeverity | null>(null);
+  const visibleRules = useMemo(() => ALERT_CATALOG
+    .filter((rule) => selectedSeverity === null || rule.severity === selectedSeverity)
+    .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || a.code.localeCompare(b.code, undefined, { numeric: true })), [selectedSeverity]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKeyDown);
@@ -38,10 +45,11 @@ export function AlertLegendModal({ paletteId, onClose }: { paletteId: AlertPalet
           <div><span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[#65716d]"><BookOpen size={13} /> Ghid de referință · {ALERT_CATALOG.length} tipuri</span><h2 id="alert-legend-title" className="m-0 mt-1 text-lg font-bold text-[#17211d] sm:text-xl">Legendă alerte și evenimente</h2><p className="m-0 mt-1 text-[11px] text-[#65716d]">Semnificația, severitatea și răspunsul recomandat pentru fiecare cod.</p></div>
           <button type="button" onClick={onClose} className="inline-flex shrink-0 items-center gap-1.5 border border-[#dce3df] bg-white px-3 py-2 text-xs font-semibold text-[#53605b] hover:bg-[#f0f4f2]"><X size={14} /> Închide</button>
         </header>
-        <div className="flex flex-wrap gap-1.5 border-b border-[#dce3df] bg-white px-5 py-3 sm:px-6">
-          {(Object.keys(ALERT_PALETTES[paletteId].colors) as AlertSeverity[]).map((level) => { const style = ALERT_PALETTES[paletteId].colors[level]; const count = ALERT_CATALOG.filter((rule) => rule.severity === level).length; return <span key={level} className="inline-flex items-center gap-1.5 border border-[#edf0ee] px-2 py-1 text-[9px] font-bold" style={{ color: style.color, backgroundColor: style.soft }}><i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: style.color }} />{style.label}<span className="font-mono opacity-70">{count}</span></span>; })}
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-[#dce3df] bg-white px-5 py-3 sm:px-6">
+          {SEVERITY_ORDER.map((level) => { const style = ALERT_PALETTES[paletteId].colors[level]; const count = ALERT_CATALOG.filter((rule) => rule.severity === level).length; const active = selectedSeverity === level; return <button type="button" key={level} aria-pressed={active} onClick={() => setSelectedSeverity(active ? null : level)} className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[9px] font-bold transition-shadow ${active ? "ring-2 ring-inset ring-current" : "hover:brightness-95"}`} style={{ color: style.color, backgroundColor: style.soft, borderColor: `${style.color}55` }}><i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: style.color }} />{style.label}<span className="font-mono opacity-70">{count}</span></button>; })}
+          <span className="ml-auto text-[9px] text-[#65716d]">{selectedSeverity ? `${visibleRules.length} afișate · apasă din nou pentru toate` : `${visibleRules.length} tipuri · ordonate după severitate`}</span>
         </div>
-        <div className="overflow-y-auto p-3 sm:p-5"><div className="space-y-2">{ALERT_CATALOG.map((rule) => <LegendCard key={rule.code} rule={rule} paletteId={paletteId} />)}</div></div>
+        <div className="overflow-y-auto p-3 sm:p-5"><div className="space-y-2">{visibleRules.map((rule) => <LegendCard key={rule.code} rule={rule} paletteId={paletteId} />)}</div></div>
         <footer className="border-t border-[#dce3df] bg-white px-5 py-2 text-[9px] text-[#78847f] sm:px-6">Catalog demonstrativ pentru interfața beta. Notificările afișate nu trimit mesaje în afara aplicației.</footer>
       </section>
     </div>
