@@ -43,7 +43,7 @@ import { TimeRangeToolbar } from "@/components/dashboard-opt/time-range-toolbar"
 import { TurbineKpiGrid } from "@/components/dashboard-opt/turbine-kpi-grid";
 import { WeatherColumn } from "@/components/dashboard-opt/weather-column";
 import { AlarmColumn } from "@/components/dashboard-opt/alarm-column";
-import { getDemoAlertHistory, type AlertItem } from "@/components/dashboard-opt/alert-demo";
+import { ALERT_CATALOG, getDemoAlertHistory, type AlertItem } from "@/components/dashboard-opt/alert-demo";
 import { ChartAnalysisModal } from "@/components/dashboard-opt/chart-analysis-modal";
 import { FleetOverviewTable } from "@/components/dashboard-opt/fleet-overview-table";
 import { RoiCalculator } from "@/components/dashboard-opt/roi-calculator";
@@ -116,6 +116,8 @@ export default function OptimizedDashboardPage() {
   );
   const [records, setRecords] = useState(initialRecords);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [telemetryError, setTelemetryError] = useState("");
+  const [simulationMode, setSimulationMode] = useState(false);
 
   // Notițe
   const [notes, setNotes] = useState<TurbineNote[]>([]);
@@ -166,9 +168,18 @@ export default function OptimizedDashboardPage() {
 
   // Încărcare telemetrie
   useEffect(() => {
-    fetch("/telemetry.json", { cache: "force-cache" })
-      .then((res) => (res.ok ? (res.json() as Promise<Point[]>) : Promise.reject()))
+    const simulation = new URLSearchParams(window.location.search).get("sim") === "1";
+    setSimulationMode(simulation);
+    const load = () => fetch(simulation ? "/api/telemetry" : "/telemetry.json", { cache: simulation ? "no-store" : "force-cache" })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Telemetrie indisponibilă (${res.status})`);
+        const body: unknown = await res.json();
+        const telemetry = simulation ? (body as { rows?: unknown }).rows : body;
+        if (!Array.isArray(telemetry)) throw new Error("Format telemetrie invalid");
+        return telemetry as Point[];
+      })
       .then((telemetry) => {
+        setTelemetryError(simulation && telemetry.length === 0 ? "Nu există încă citiri la endpoint." : "");
         const grouped = Object.fromEntries(
           turbines.map((t) => [
             t.locationId,
@@ -186,7 +197,12 @@ export default function OptimizedDashboardPage() {
         );
         if (latestPt) setLastUpdate(new Date(latestPt.DataOra));
       })
-      .catch(() => undefined);
+      .catch((error: Error) => setTelemetryError(error.message));
+    void load();
+    if (simulation) {
+      const interval = window.setInterval(() => { void load(); }, 60_000);
+      return () => window.clearInterval(interval);
+    }
   }, []);
 
   const selectedTurbine =
@@ -302,10 +318,18 @@ export default function OptimizedDashboardPage() {
     return list;
   }, [latest]);
 
-  // Catalog demonstrativ reutilizat pentru fiecare turbină în beta.
+  // Simulatorul își atașează alertele fiecărei citiri; în modul istoric păstrăm demo-ul existent.
   const alerts = useMemo(
-    () => [...telemetryAlerts, ...getDemoAlertHistory(latest)].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt)),
-    [latest, telemetryAlerts],
+    () => {
+      if (new URLSearchParams(typeof window === "undefined" ? "" : window.location.search).get("sim") === "1") {
+        return allPoints.flatMap((point) => (point.alerts ?? []).map((event): AlertItem => {
+          const rule = ALERT_CATALOG.find((item) => item.code === event.code);
+          return { code: event.code, parameter: rule?.parameter ?? event.code, severity: event.severity, icon: rule?.icon ?? "sensor", action: event.action ?? rule?.action ?? "Verificare tehnică.", text: rule?.description ?? "Eveniment simulat", reading: event.reading, occurredAt: event.occurredAt, status: event.status, isDemoActive: true };
+        })).sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
+      }
+      return [...telemetryAlerts, ...getDemoAlertHistory(latest)].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
+    },
+    [latest, telemetryAlerts, allPoints],
   );
   // Export PDF A4
   function exportPdf(
@@ -620,9 +644,9 @@ export default function OptimizedDashboardPage() {
             </button>
 
             {/* Indicator LIVE */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#edf6f2] border border-[#bfe2d1] text-[11px] font-bold text-[#257b68] font-mono">
-              <span className="w-2 h-2 rounded-full bg-[#257b68] animate-pulse" />
-              LIVE
+            <div className={`flex items-center gap-1.5 px-2 py-0.5 border text-[11px] font-bold font-mono ${telemetryError || (simulationMode && Date.now() - lastUpdate.getTime() > 70 * 60_000) ? "bg-[#fff4ec] border-[#e8a878] text-[#9b4d20]" : "bg-[#edf6f2] border-[#bfe2d1] text-[#257b68]"}`} title={telemetryError || undefined}>
+              <span className={`w-2 h-2 rounded-full ${telemetryError || (simulationMode && Date.now() - lastUpdate.getTime() > 70 * 60_000) ? "bg-[#9b4d20]" : "bg-[#257b68] animate-pulse"}`} />
+              {telemetryError ? "DATE INDISPONIBILE" : simulationMode && Date.now() - lastUpdate.getTime() > 70 * 60_000 ? "DATE ÎNTÂRZIATE" : "LIVE"}
             </div>
 
             {/* Ceas EET */}

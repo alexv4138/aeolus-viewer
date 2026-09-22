@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { Activity, Bolt, Gauge, Thermometer, Vibrate, Zap, type LucideIcon } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import {
   formatDecimal,
@@ -94,9 +95,9 @@ function getTrend(data: number[], digits = 0) {
 
 interface KpiCardProps {
   label: string;
+  icon: LucideIcon;
   value: string;
   unit: string;
-  subtext?: string;
   safe?: boolean;
   warn?: boolean;
   critical?: boolean;
@@ -107,9 +108,9 @@ interface KpiCardProps {
 
 function KpiCard({
   label,
+  icon: Icon,
   value,
   unit,
-  subtext,
   safe,
   warn,
   critical,
@@ -124,8 +125,8 @@ function KpiCard({
   return (
     <div className="flex flex-col justify-between p-3.5 bg-white border border-[#dce3df] hover:border-[#b5c2bd] transition-colors shadow-2xs min-w-0">
       <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
-        <span className="text-[10px] font-bold text-[#65716d] uppercase tracking-wider leading-tight">
-          {label}
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#65716d] uppercase tracking-wider leading-tight">
+          <Icon size={14} aria-hidden="true" /> {label}
         </span>
         {safe && (
           <span className="text-[9px] font-semibold text-[#257b68] bg-[#edf6f2] px-1.5 py-0.5 border border-[#cbe3d7] shrink-0">
@@ -168,9 +169,6 @@ function KpiCard({
         )}
       </div>
 
-      {subtext && (
-        <span className="text-[10px] text-[#8e9c98] mt-1.5 truncate">{subtext}</span>
-      )}
     </div>
   );
 }
@@ -192,72 +190,72 @@ export function TurbineKpiGrid({ latest, points = [] }: TurbineKpiGridProps) {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
       <KpiCard
         label="Turație rotor"
+        icon={Gauge}
         value={formatInt(latest.Turatie)}
         unit="RPM"
-        subtext="Viteză unghiulară ax"
         sparkData={extractSeries("Turatie")}
         sparkColor="#1e6b5a"
       />
       <KpiCard
         label="Voltaj generator"
+        icon={Zap}
         value={formatInt(latest.Voltaj)}
         unit="V"
-        subtext="Tensiune de lucru"
         sparkData={extractSeries("Voltaj")}
         sparkColor="#367396"
       />
       <KpiCard
         label="Amperaj"
+        icon={Activity}
         value={formatDecimal(latest.Amperaj, 1)}
         unit="A"
-        subtext="Curent debitat"
         sparkData={extractSeries("Amperaj")}
         sparkColor="#2e8571"
         digits={1}
       />
       <KpiCard
         label="Putere instantanee"
+        icon={Bolt}
         value={formatInt(latest.Putere)}
         unit="W"
-        subtext="Generare electrică"
         sparkData={extractSeries("Putere")}
         sparkColor="#bd861c"
       />
       <KpiCard
         label="Energie cumulată"
+        icon={Bolt}
         value={formatEnergy(latest.Energie)}
         unit="kWh"
-        subtext={`~${formatInt((Number(latest.Energie) || 0) * 1.3)} lei generat`}
         sparkData={extractSeries("Energie")}
         sparkColor="#167bb8"
         digits={1}
       />
       <KpiCard
         label="Vibrație mecanică"
+        icon={Vibrate}
         value={formatVibration(latest.Vibratii)}
         unit="G"
         safe={!isVibeHigh}
         warn={isVibeHigh}
-        subtext="Stare rulmenți ax"
         sparkData={extractSeries("Vibratii")}
         sparkColor={isVibeHigh ? "#c97a22" : "#257b68"}
         digits={2}
       />
       <KpiCard
         label="Cuplu mecanic"
+        icon={Gauge}
         value={formatInt(latest.CupluMec)}
         unit="Nm"
-        subtext="Efort de torsiune"
         sparkData={extractSeries("CupluMec")}
         sparkColor="#687b74"
       />
       <KpiCard
         label="Temp. generator"
+        icon={Thermometer}
         value={formatInt(latest.TempInfas)}
         unit="°C"
         warn={isTempHigh}
         safe={!isTempHigh}
-        subtext="Înfășurări stator"
         sparkData={extractSeries("TempInfas")}
         sparkColor={isTempHigh ? "#c93b2b" : "#257b68"}
       />

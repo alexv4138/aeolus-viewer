@@ -1,0 +1,8 @@
+node_modules/
+data/*.jsonl
+data/snapshot.json
+data/*.tmp
+data/simulated-telemetry.archive.jsonl
+output/
+.env*
+data/push-offset.json

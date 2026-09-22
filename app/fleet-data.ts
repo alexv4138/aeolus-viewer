@@ -1,5 +1,5 @@
 export type WorkbookUser = { locationId: number; location: string; role: number; username: string; name: string; phone: string };
-export type WorkbookTelemetry = { IDLocatie: number; DataOra: string; TempC: number; PresAtm: number; Umiditate: number; VitVant: number; DirectieVant: string; RadSolara: number; Turatie: number; Voltaj: number; Amperaj: number; Putere: number; Energie: number; Vibratii: number; CupluMec: number; TempInfas: number; Alarma: number };
+export type WorkbookTelemetry = { IDLocatie: number; DataOra: string; TempC: number; PresAtm: number; Umiditate: number; VitVant: number; DirectieVant: string; RadSolara: number; Turatie: number; Voltaj: number; Amperaj: number; Putere: number; Energie: number; Vibratii: number; CupluMec: number; TempInfas: number; Alarma: number; alerts?: Array<{ code: string; severity: "info" | "low" | "medium" | "high" | "critical"; status: "active" | "resolved"; occurredAt: string; reading?: string; action?: string }> };
 
 // Importat din fișierele Excel furnizate la 03.09.2026.
 export const workbookUsers: WorkbookUser[] = [

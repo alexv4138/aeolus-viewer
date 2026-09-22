@@ -1,0 +1,12 @@
+{
+  "turbineId": "turbine-01",
+  "sensorId": "local-demo-script",
+  "observedAt": "2026-09-23T12:30:00+03:00",
+  "sequence": 1,
+  "eventId": "demo-01-0001",
+  "readings": {
+    "windSpeed": { "value": 6.2, "unit": "m/s" },
+    "rotorSpeed": { "value": 18.4, "unit": "rpm" },
+    "generatorTemperature": { "value": 42.1, "unit": "°C" }
+  }
+}
