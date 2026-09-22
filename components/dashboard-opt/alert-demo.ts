@@ -19,7 +19,7 @@ export type AlertItem = Pick<AlertRule, "code" | "parameter" | "severity" | "act
   isDemoActive?: boolean;
 };
 
-const DEMO_READINGS: Record<string, string> = {
+export const DEMO_ALERT_READINGS: Record<string, string> = {
   "ERR-001": "1.850 RPM", "ERR-002": "92 °C", "ERR-003": "8,4 mm/s", "ERR-004": "258 V",
   "ERR-005": "18,6 A", "ERR-006": "184 V", "ERR-007": "1,42 kNm", "ERR-008": "0% semnal",
   "ERR-009": "0 m/s", "ERR-010": "0 RPM", "ERR-011": "86 dB", "ERR-012": "48 Hz",
@@ -76,17 +76,17 @@ export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   const resolved = resolvedRules.map((rule, index) => ({
     ...rule,
     text: rule.description,
-    reading: DEMO_READINGS[rule.code],
+    reading: DEMO_ALERT_READINGS[rule.code],
     occurredAt: atOffset(latest.DataOra, recentOffsets[rule.code] ?? -(8 + index)),
     status: "resolved" as const,
   }));
   const infoRule = ALERT_CATALOG.find((rule) => rule.code === "ERR-015")!;
-  resolved.push({ ...infoRule, text: infoRule.description, reading: DEMO_READINGS[infoRule.code], occurredAt: atOffset(latest.DataOra, -7), status: "resolved" as const });
+  resolved.push({ ...infoRule, text: infoRule.description, reading: DEMO_ALERT_READINGS[infoRule.code], occurredAt: atOffset(latest.DataOra, -7), status: "resolved" as const });
   const activeRule = ALERT_CATALOG.find((rule) => rule.code === activeCode)!;
   const active = {
     ...activeRule,
     text: activeRule.description,
-    reading: DEMO_READINGS[activeRule.code],
+    reading: DEMO_ALERT_READINGS[activeRule.code],
     occurredAt: atOffset(latest.DataOra, -0.25),
     status: "active" as const,
     isDemoActive: true,

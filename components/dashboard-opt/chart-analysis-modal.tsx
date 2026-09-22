@@ -430,7 +430,7 @@ export function ChartAnalysisModal({
                     <span className="font-mono text-[11px] text-[#53605b]">
                       {formatDateTime(pt.DataOra)}
                       {alerts.filter((alert) => alert.occurredAt.slice(0, 16) === pt.DataOra.slice(0, 16)).map((alert) => (
-                        <span key={`${alert.code}-${alert.occurredAt}`} className="ml-2 inline-flex items-center gap-1 font-sans text-[9px] font-bold" style={{ color: ALERT_PALETTES.contrast.colors[alert.severity].color }} title={`${alert.code} · ${alert.parameter}`}>
+                        <span key={`${alert.code}-${alert.occurredAt}`} className="ml-2 inline-flex items-center gap-1 font-sans text-[9px] font-bold" style={{ color: ALERT_PALETTES.contrast.colors[alert.severity].color }} title={`${alert.code} · ${alert.parameter}${alert.reading ? ` · ${alert.reading}` : ""} · Acțiune recomandată: ${alert.action}`}>
                           <AlertIcon name={alert.icon} size={11} /> {alert.code}
                         </span>
                       ))}

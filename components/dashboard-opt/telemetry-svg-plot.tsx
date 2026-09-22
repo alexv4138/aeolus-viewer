@@ -278,7 +278,7 @@ export function TelemetrySvgPlot({
               <line x1={x} x2={x} y1={markerY + 7} y2={bottom} stroke={markerColor} strokeWidth="1.4" strokeDasharray="3 3" opacity="0.85" />
               <circle cx={x} cy={markerY} r="8" fill="#ffffff" stroke={markerColor} strokeWidth="1.8" />
               <Icon x={x - 5} y={markerY - 5} width={10} height={10} color={markerColor} strokeWidth={2.4} />
-              <title>{`${alert.code} · ${alert.parameter} · ${formatDateTime(alert.occurredAt)}`}</title>
+              <title>{`${alert.code} · ${alert.parameter}${alert.reading ? ` · ${alert.reading}` : ""} · ${formatDateTime(alert.occurredAt)} · Acțiune recomandată: ${alert.action}`}</title>
             </g>
           );
         })}

@@ -40,6 +40,7 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
   const activeAlert = activeAlerts[0];
   const hasDemoActiveAlert = activeAlerts.some((alert) => alert.isDemoActive);
   const latestResolved = alerts.find((alert) => alert.status === "resolved" && Date.parse(latest.DataOra) - Date.parse(alert.occurredAt) <= 48 * 60 * 60 * 1000);
+  const glanceAlert = activeAlert ?? latestResolved;
   const recentAlerts = alerts.slice(0, 8);
   const severityLevels: AlertSeverity[] = ["critical", "high", "medium", "low", "info"];
   const state = activeAlerts.some((alert) => alert.severity === "critical") ? "NEFUNCȚIONAL" : activeAlerts.some((alert) => severityRank[alert.severity] >= severityRank.medium) ? "ÎNCETINIT" : "NOMINAL";
@@ -74,7 +75,7 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
           </div>
           <button type="button" onClick={() => setIsHistoryOpen(true)} className="mt-2 flex w-full items-start gap-2 text-left">
             {activeAlert ? <AlertIcon name={activeAlert.icon} size={17} /> : <AlertOctagon size={17} />}
-            <span className="min-w-0"><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Urgențe</span><strong className="block text-[11px] leading-snug" style={{ color: emergencyColor }}>{emergencyText}</strong>{activeAlerts.length > 1 && <span className="mt-0.5 block text-[9px] text-[#53605b]">{activeAlerts.map((alert) => alert.parameter).join(" · ")}</span>}</span>
+            <span className="min-w-0"><span className="block text-[9px] font-bold uppercase tracking-wide text-[#65716d]">Urgențe</span><strong className="block text-[11px] leading-snug" style={{ color: emergencyColor }}>{emergencyText}</strong>{glanceAlert?.reading && <span className="mt-1 block text-[9px] font-mono font-semibold text-[#28332f]">Valoare: {glanceAlert.reading}</span>}{activeAlerts.length > 1 && <span className="mt-0.5 block text-[9px] text-[#53605b]">{activeAlerts.slice(1).map((alert) => `${alert.parameter}${alert.reading ? ` (${alert.reading})` : ""}`).join(" · ")}</span>}{glanceAlert && <span className="mt-1 block text-[9px] leading-snug text-[#53605b]"><strong>Acțiune recomandată:</strong> {glanceAlert.action}</span>}</span>
           </button>
           {hasDemoActiveAlert && <button type="button" onClick={toggleFlash} className="mt-2 text-[9px] font-semibold underline underline-offset-2" style={{ color: emergencyColor }}>{flashEnabled ? "Opriți flash-ul (demo)" : "Afișați flash (demo)"}</button>}
         </div>
@@ -86,7 +87,7 @@ export function AlarmColumn({ latest, alerts, turbineName, turbineLocation }: Al
               const meta = severityMeta[alert.severity];
               return <button type="button" key={`${alert.code}-${alert.occurredAt}`} onClick={() => setIsHistoryOpen(true)} className="p-2.5 border text-left hover:brightness-95 transition-colors" style={{ backgroundColor: meta.soft, borderColor: meta.color }}>
                 <span className="flex items-center justify-between gap-2"><span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase" style={{ color: meta.color }}><AlertIcon name={alert.icon} size={11} /> {meta.label} · {alert.code}</span><time className="font-mono text-[9px] text-[#65716d]">{alert.occurredAt.slice(5, 10).split("-").reverse().join(".")} · {alert.occurredAt.slice(11, 16)}</time></span>
-                <strong className="mt-1 block text-[11px] text-[#121a18]">{alert.parameter}</strong><span className="mt-0.5 block text-[9px] text-[#65716d]">{alert.status === "active" ? "Activă" : "Rezolvată"}</span>
+                <strong className="mt-1 block text-[11px] text-[#121a18]">{alert.parameter}</strong>{alert.reading && <span className="mt-0.5 block text-[9px] font-mono font-semibold" style={{ color: meta.color }}>{alert.reading}</span>}<span className="mt-0.5 block text-[9px] text-[#65716d]">{alert.status === "active" ? "Activă" : "Rezolvată"}</span>
               </button>;
             })}
           </div>
