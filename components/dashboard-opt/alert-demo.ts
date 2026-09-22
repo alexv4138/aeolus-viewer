@@ -63,7 +63,13 @@ function atOffset(latestIso: string, hours: number) {
 
 export function getDemoAlertHistory(latest: WorkbookTelemetry): AlertItem[] {
   const activeCode = "ERR-004";
-  const resolvedRules = ALERT_CATALOG.filter((rule) => rule.code !== activeCode);
+  // Keep every severity represented among the newest demo rows/graph markers.
+  const recentCodes = ["ERR-015", "ERR-014", "ERR-006", "ERR-001", "ERR-021", "ERR-008", "ERR-012"];
+  const resolvedRules = ALERT_CATALOG.filter((rule) => rule.code !== activeCode).sort((a, b) => {
+    const aRank = recentCodes.indexOf(a.code);
+    const bRank = recentCodes.indexOf(b.code);
+    return (aRank < 0 ? Number.MAX_SAFE_INTEGER : aRank) - (bRank < 0 ? Number.MAX_SAFE_INTEGER : bRank);
+  });
   const resolved = resolvedRules.map((rule, index) => ({
     ...rule,
     text: rule.description,

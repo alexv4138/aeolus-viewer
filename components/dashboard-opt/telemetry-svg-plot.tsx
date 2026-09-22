@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { AlertOctagon, AlertTriangle, Bird, CloudLightning, Flame, Gauge, Network, ShieldAlert, ThermometerSun, Vibrate, Zap, type LucideIcon } from "lucide-react";
 import type { WorkbookTelemetry } from "@/app/fleet-data";
 import type { AlertIconName, AlertItem, AlertSeverity } from "./alert-demo";
+import { ALERT_PALETTES } from "./alert-palette";
 import { formatDate, formatDateTime, formatDecimal, formatInt, formatTime, formatVibration } from "./formatters";
 
 type Point = WorkbookTelemetry;
@@ -27,9 +28,9 @@ const alertIcons: Record<AlertIconName, LucideIcon> = {
   current: Zap, storm: CloudLightning, hail: CloudLightning, seismic: AlertTriangle,
   bird: Bird, fire: Flame, brake: ShieldAlert, network: Network,
 };
-const alertColors: Record<AlertSeverity, string> = {
-  info: "#587387", low: "#63766d", medium: "#b87919", high: "#c76522", critical: "#bd3a2b",
-};
+const alertColors: Record<AlertSeverity, string> = Object.fromEntries(
+  Object.entries(ALERT_PALETTES.contrast.colors).map(([severity, style]) => [severity, style.color]),
+) as Record<AlertSeverity, string>;
 
 export function TelemetrySvgPlot({
   points,
